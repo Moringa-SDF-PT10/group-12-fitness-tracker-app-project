@@ -1,4 +1,6 @@
+// WorkoutsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
     Search, ChevronRight, RefreshCw, AlertTriangle, Loader2, Dumbbell,
     HeartPulse, Shield, MoveHorizontal, Footprints, UserCircle, Award, Zap,
@@ -9,10 +11,9 @@ const API_LIST_URL = 'https://exercisedb-api.vercel.app/api/v1/exercises';
 
 const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
-// Updated to use the new color palette for icons
 const getIconForBodyPart = (bodyPart) => {
     const bp = bodyPart ? bodyPart.toLowerCase() : '';
-    const iconColorClass = "text-[#A1887F]"; // Using accent-neutral or text-secondary
+    const iconColorClass = "text-[#A1887F]";
 
     switch (bp) {
         case 'back': return <ArrowUpFromDot className={`w-16 h-16 ${iconColorClass}`} />;
@@ -29,7 +30,7 @@ const getIconForBodyPart = (bodyPart) => {
     }
 };
 
-const ExerciseCard = ({ exercise, navigate }) => {
+const ExerciseCard = ({ exercise, navigate }) => { // navigate prop is still passed here
   const primaryBodyPart = (Array.isArray(exercise.bodyParts) && exercise.bodyParts.length > 0) ? exercise.bodyParts[0] : 'unknown';
   const primaryTarget = (Array.isArray(exercise.targetMuscles) && exercise.targetMuscles.length > 0) ? exercise.targetMuscles[0] : 'N/A';
   const primaryEquipment = (Array.isArray(exercise.equipments) && exercise.equipments.length > 0) ? exercise.equipments[0] : 'N/A';
@@ -77,7 +78,8 @@ const ExerciseCard = ({ exercise, navigate }) => {
   );
 };
 
-const WorkoutsPage = ({ navigate }) => {
+const WorkoutsPage = () => { // Removed navigate from props
+  const navigate = useNavigate(); // Use the hook here
   const [allFetchedExercises, setAllFetchedExercises] = useState([]);
   const [exercisesToDisplay, setExercisesToDisplay] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,10 +117,9 @@ const WorkoutsPage = ({ navigate }) => {
   useEffect(() => {
     const loadInitialExercises = async () => {
         setError(null);
-        const initialItems = await fetchExerciseData(`${API_LIST_URL}?limit=50`); // Fetch enough for good filter options
+        const initialItems = await fetchExerciseData(`${API_LIST_URL}?limit=50`);
         if (initialItems && initialItems.length > 0) {
             setAllFetchedExercises(initialItems);
-            // Populate filter options from the initially fetched data
             const uniqueBodyParts = ['', ...new Set(initialItems.flatMap(ex => ex.bodyParts || []).map(bp => bp ? bp.toLowerCase() : '').filter(bp => bp))].sort();
             const uniqueEquipments = ['', ...new Set(initialItems.flatMap(ex => ex.equipments || []).map(eq => eq ? eq.toLowerCase() : '').filter(eq => eq))].sort();
             setBodyPartFilterOptions(uniqueBodyParts);
@@ -152,7 +153,7 @@ const WorkoutsPage = ({ navigate }) => {
         Array.isArray(ex.equipments) && ex.equipments.some(eq => eq && eq.toLowerCase() === lowerEquipment)
       );
     }
-    setExercisesToDisplay(filtered.slice(0, 24)); // Display a subset, can be adjusted
+    setExercisesToDisplay(filtered.slice(0, 24));
   }, [searchTerm, selectedBodyPart, selectedEquipment, allFetchedExercises]);
 
   const loadMoreExerciseData = async () => {
@@ -166,23 +167,21 @@ const WorkoutsPage = ({ navigate }) => {
   const canLoadMore = !!nextPageUrl;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 bg-[#FFF7F5] min-h-full"> {/* Page background */}
+    <div className="p-4 md:p-6 lg:p-8 bg-[#FFF7F5] min-h-full">
       <header className="mb-8 text-center">
-        <div className="inline-flex items-center justify-center bg-[#FFDAC1]/30 p-3 rounded-full mb-3"> {/* Primary pastel tint */}
-            <Dumbbell className="h-10 w-10 text-[#FFB6C1]" /> {/* Secondary pastel for icon */}
+        <div className="inline-flex items-center justify-center bg-[#FFDAC1]/30 p-3 rounded-full mb-3">
+            <Dumbbell className="h-10 w-10 text-[#FFB6C1]" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-[#6D4C41]"> {/* Primary text color */}
+        <h1 className="text-3xl md:text-4xl font-bold text-[#6D4C41]">
           Explore Exercises
         </h1>
-        <p className="text-[#A1887F] mt-2 text-md max-w-xl mx-auto"> {/* Secondary text color */}
+        <p className="text-[#A1887F] mt-2 text-md max-w-xl mx-auto">
           Find the perfect workout for your goals. Filter by body part, equipment, or search by name.
         </p>
       </header>
 
-      {/* Filter Section */}
-      <div className="mb-8 p-4 md:p-6 bg-[#FFFFFF] rounded-2xl shadow-lg border border-[#F5E0D5]"> {/* Surface color, new border, new rounding */}
+      <div className="mb-8 p-4 md:p-6 bg-[#FFFFFF] rounded-2xl shadow-lg border border-[#F5E0D5]">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          {/* Search Input */}
           <div className="lg:col-span-2">
             <label htmlFor="search-exercise" className="block text-sm font-medium text-[#6D4C41] mb-1">
               Search Exercise
@@ -201,7 +200,6 @@ const WorkoutsPage = ({ navigate }) => {
               />
             </div>
           </div>
-          {/* Body Part Filter */}
           <div>
             <label htmlFor="bodyPart-filter" className="block text-sm font-medium text-[#6D4C41] mb-1">
               Body Part
@@ -215,7 +213,6 @@ const WorkoutsPage = ({ navigate }) => {
               {bodyPartFilterOptions.map(part => <option key={part} value={part}>{capitalize(part) || 'All Body Parts'}</option>)}
             </select>
           </div>
-          {/* Equipment Filter */}
           <div>
             <label htmlFor="equipment-filter" className="block text-sm font-medium text-[#6D4C41] mb-1">
               Equipment
@@ -230,30 +227,28 @@ const WorkoutsPage = ({ navigate }) => {
             </select>
           </div>
         </div>
-         <div className="mt-4 text-right">
+        <div className="mt-4 text-right">
             <button
                 onClick={() => {
                     setSearchTerm(''); setSelectedBodyPart(''); setSelectedEquipment('');
                 }}
-                className="text-sm text-[#FFB6C1] hover:underline inline-flex items-center" // Secondary pastel for link
+                className="text-sm text-[#FFB6C1] hover:underline inline-flex items-center"
             >
                 <RefreshCw className="w-4 h-4 mr-1"/> Reset Filters
             </button>
         </div>
       </div>
 
-      {/* Loading State */}
       {isLoading && allFetchedExercises.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-12 w-12 animate-spin text-[#FFB6C1]" /> {/* Secondary pastel */}
-          <p className="mt-4 text-lg text-[#A1887F]">Loading Exercises...</p> {/* Secondary text */}
+          <Loader2 className="h-12 w-12 animate-spin text-[#FFB6C1]" />
+          <p className="mt-4 text-lg text-[#A1887F]">Loading Exercises...</p>
         </div>
       )}
 
-      {/* Error State */}
       {error && (
-        <div className="text-center py-20 bg-[#FFB6C1]/10 p-6 rounded-2xl"> {/* Tint of secondary pastel for error bg */}
-          <AlertTriangle className="h-16 w-16 text-[#FFB6C1] mx-auto mb-4" /> {/* Secondary pastel */}
+        <div className="text-center py-20 bg-[#FFB6C1]/10 p-6 rounded-2xl">
+          <AlertTriangle className="h-16 w-16 text-[#FFB6C1] mx-auto mb-4" />
           <h3 className="text-2xl font-semibold text-[#6D4C41] mb-2">Oops! Something went wrong.</h3>
           <p className="text-[#A1887F] mb-6">{error}</p>
           <button
@@ -270,7 +265,6 @@ const WorkoutsPage = ({ navigate }) => {
         </div>
       )}
 
-      {/* No Results State (Filtered) */}
       {!isLoading && !error && exercisesToDisplay.length === 0 && (searchTerm || selectedBodyPart || selectedEquipment) && (
         <div className="text-center py-20">
           <Search className="h-16 w-16 text-[#A1887F] mx-auto mb-4" />
@@ -280,7 +274,6 @@ const WorkoutsPage = ({ navigate }) => {
           </p>
         </div>
       )}
-      {/* No Results State (Initial Load Empty) */}
       {!isLoading && !error && exercisesToDisplay.length === 0 && !searchTerm && !selectedBodyPart && !selectedEquipment && allFetchedExercises.length === 0 && (
          <div className="text-center py-20">
           <Info className="h-16 w-16 text-[#A1887F] mx-auto mb-4" />
@@ -291,7 +284,6 @@ const WorkoutsPage = ({ navigate }) => {
         </div>
       )}
 
-      {/* Display Exercises */}
       {!error && exercisesToDisplay.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {exercisesToDisplay.map(exercise => (
@@ -300,13 +292,12 @@ const WorkoutsPage = ({ navigate }) => {
         </div>
       )}
 
-      {/* Load More Button */}
       {!isLoading && !error && canLoadMore && (
           <div className="mt-12 text-center">
             <button
                 onClick={loadMoreExerciseData}
-                disabled={isLoading}
-                className="px-8 py-3 bg-[#FFDAC1] hover:bg-opacity-80 text-[#6D4C41] font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center" // Primary pastel for load more
+                disabled={isLoading && allFetchedExercises.length > 0} // Prevent multiple clicks while loading more
+                className="px-8 py-3 bg-[#FFDAC1] hover:bg-opacity-80 text-[#6D4C41] font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center"
             >
                 {isLoading && allFetchedExercises.length > 0 ? <Loader2 className="w-5 h-5 mr-2 animate-spin"/> : null}
                 Load More Exercises
