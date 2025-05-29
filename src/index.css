@@ -399,3 +399,111 @@ button {
   scrollbar-color: #444 #1e1e1e;
   scrollbar-width: thin;
 }
+
+/* dashboard page styling
+
+/* Base Styles */
+.dashboard {
+  padding: 2rem;
+  font-family: sans-serif;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--section-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.progress-bar {
+  height: 20px;
+  background-color: #4caf50;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+}
+
+.ring {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.ring svg {
+  width: 100%;
+  height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: var(--circle-bg);
+  stroke-width: 3.8;
+}
+
+.circle {
+  fill: none;
+  stroke: #00aaff;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  animation: dash 1s ease-out forwards;
+}
+
+.percentage {
+  fill: var(--text-color);
+  font-size: 0.5rem;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+@keyframes dash {
+  from {
+    stroke-dasharray: 0, 100;
+  }
+  to {
+    stroke-dasharray: 75, 100;
+  }
+}
+
+.trackers {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.trackers div {
+  flex: 1;
+  background: var(--tracker-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.reminder {
+  background-color: var(--reminder-bg);
+  border-left: 5px solid var(--reminder-border);
+  padding: 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+/* Light Mode (default) */
+:root {
+  --section-bg: #f9f9f9;
+  --circle-bg: #eee;
+  --text-color: #333;
+  --tracker-bg: #e8f0fe;
+  --reminder-bg: #fff3cd;
+  --reminder-border: #ffeeba;
+}
+
+/* Dark Mode */
+[data-theme='dark'] {
+  --section-bg: #1e1e1e;
+  --circle-bg: #444;
+  --text-color: #f0f0f0;
+  --tracker-bg: #2c3e50;
+  --reminder-bg: #3e3e3e;
+  --reminder-border: #ffd54f;
+}
