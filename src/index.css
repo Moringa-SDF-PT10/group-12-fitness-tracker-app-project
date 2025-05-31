@@ -505,3 +505,22 @@ button {
   --reminder-bg: #3e3e3e;
   --reminder-border: #ffd54f;
 }
+
+.feedback-message {
+  margin-top: 8px;
+  color: green;
+  font-weight: 500;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,238 +1,291 @@
-// SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
 
-function Input({ label, value, onChange, type = 'text', ...props }) {
-  return (
-    <div className="input-group">
-      <label>{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        {...props}
-      />
-    </div>
-  );
-}
+const SettingsPage = () => {
+  const defaultUserData = {
+    tab: 'Account',
+    profile: {
+      name: '',
+      email: '',
+      age: '',
+      gender: 'Male',
+      height: '',
+      weight: '',
+      photo: '',
+    },
+    goals: {
+      type: '',
+      target: '',
+      timeframe: '',
+    },
+    preferences: {
+      workouts: '',
+      equipment: '',
+      timeConstraints: '',
+    },
+    progress: {
+      weight: '',
+      totalWorkouts: '',
+      streak: '',
+      caloriesBurned: '',
+    },
+    notifications: {
+      notifyWorkouts: false,
+      notifyProgress: false,
+      notifyPromotions: false,
+    },
+    appearance: {
+      theme: 'light',
+      fontSize: 'medium',
+    },
+    subscription: {
+      plan: 'Free',
+    },
+    supportEmail: 'support@fitbuddy.com',
+    feedback: '',
+  };
+  
+  const [feedback, setFeedback] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
 
-function Toggle({ label, checked, onChange }) {
-  return (
-    <div className="toggle-group">
-      <label>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={e => onChange(e.target.checked)}
-        />
-        {label}
-      </label>
-    </div>
-  );
-}
+  const [userData, setUserData] = useState(defaultUserData);
+  const [isDirty, setIsDirty] = useState(false);
 
-function Select({ label, value, onChange, options }) {
-  return (
-    <div className="select-group">
-      <label>{label}</label>
-      <select value={value} onChange={e => onChange(e.target.value)}>
-        {options.map(opt => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-const defaultSettings = {
-  tab: 'Account',
-  name: '',
-  email: '',
-  age: '',
-  height: '',
-  weight: '',
-  gender: '',
-  workoutReminders: true,
-  goalTracking: true,
-  goalType: '',
-  goalTarget: '',
-  goalTimeframe: '',
-  goalNotificationTime: '',
-  goalAlertMethod: '',
-  notifyWorkouts: true,
-  notifyProgress: false,
-  notifyPromotions: true,
-  syncGoogleFit: false,
-  syncAppleHealth: false,
-  syncFrequency: '',
-  syncOverWifiOnly: false,
-  theme: 'light',
-  fontSize: 'medium',
-  subscriptionPlan: 'free',
-  supportEmail: 'support@fitbuddy.com',
-  feedback: '',
-};
-
-function SettingsPage() {
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('userData');
-    return saved ? JSON.parse(saved) : defaultSettings;
-  });
+  const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 
   useEffect(() => {
-    localStorage.setItem('userData', JSON.stringify(settings));
-  }, [settings]);
+    const fetchData = async () => {
+      try {
+        const local = localStorage.getItem('userData');
+        if (local) {
+          setUserData(prev => ({ ...defaultUserData, ...JSON.parse(local) }));
+        } else {
+          const res = await fetch(API_URL);
+          if (!res.ok) throw new Error('Fetch failed');
+          const data = await res.json();
+          const apiUserData = Array.isArray(data) ? data[0] : data;
+          setUserData(prev => ({ ...defaultUserData, ...apiUserData }));
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', settings.theme);
-    document.documentElement.setAttribute('data-font-size', settings.fontSize);
-  }, [settings.theme, settings.fontSize]);
+    document.documentElement.setAttribute('data-theme', userData.appearance.theme);
+    document.documentElement.setAttribute('data-font-size', userData.appearance.fontSize);
+  }, [userData.appearance.theme, userData.appearance.fontSize]);
 
-  const updateSetting = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const validateEmail = email => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+
+  const handleChange = (section, field, value) => {
+    const numericFields = ['age', 'height', 'weight', 'streak', 'caloriesBurned', 'totalWorkouts'];
+    const parsedValue = numericFields.includes(field) ? (parseFloat(value) || '') : value;
+
+    setUserData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: parsedValue,
+      },
+    }));
+    setIsDirty(true);
   };
 
-  function validateEmail(email) {
-    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(email);
+  const handleToggle = (section, field, value) => {
+    setUserData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+    setIsDirty(true);
+  };
+
+  const handleTabChange = tab => setUserData(prev => ({ ...prev, tab }));
+
+  const resetSettings = () => {
+    setUserData(defaultUserData);
+    setIsDirty(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setIsDirty(false);
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      if (!res.ok) throw new Error('Save failed');
+      alert('Settings saved successfully!');
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('Error saving settings');
+    }
+  };
+
+  const handleFeedbackSubmit = () => {
+  if (feedback.trim() === '') {
+    setFeedbackMessage('Please enter feedback before submitting.');
+  } else {
+    setFeedbackMessage('Thank you for your feedback! Our team will get back to you shortly');
+    setFeedback(''); // clear input from the user
   }
 
-  const isEmailValid = validateEmail(settings.email);
+  //clear the message after a few seconds
+  setTimeout(() => setFeedbackMessage(''), 4000);
+};
 
-  const resetSettings = () => setSettings(defaultSettings);
 
-  const saveSettings = () => {
-    localStorage.setItem('userData', JSON.stringify(settings));
-    alert('Settings saved successfully!');
-  };
+  const { profile, goals, preferences, notifications, appearance, subscription, supportEmail } = userData;
 
   return (
     <div className="settings-page">
       <div className="tabs">
-        {['Account', 'Workout', 'Notifications', 'Data & Sync', 'Appearance', 'Subscription', 'Support'].map(tab => (
+        {['Account', 'Workout', 'Notifications', 'Appearance', 'Subscription', 'Support'].map(tab => (
           <button
             key={tab}
-            className={settings.tab === tab ? 'active' : ''}
-            onClick={() => updateSetting('tab', tab)}
+            className={`tab-btn ${userData.tab === tab ? 'active' : ''}`}
+            onClick={() => handleTabChange(tab)}
           >
             {tab}
           </button>
         ))}
       </div>
 
-      <div className="tab-content">
-        {settings.tab === 'Account' && (
-          <div>
-            <Input label="Name" value={settings.name} onChange={val => updateSetting('name', val)} />
-            <Input
-              label="Email Address"
-              type="email"
-              value={settings.email}
-              onChange={val => updateSetting('email', val)}
-              style={{ borderColor: isEmailValid ? 'initial' : 'red' }}
-            />
-            {!isEmailValid && <p className="error">This is not a valid email address.</p>}
-            <Input label="Age" type="number" value={settings.age} onChange={val => updateSetting('age', val)} />
-            <Input label="Height (cm)" type="number" value={settings.height} onChange={val => updateSetting('height', val)} />
-            <Input label="Weight (kg)" type="number" value={settings.weight} onChange={val => updateSetting('weight', val)} />
-            <Select
-              label="Gender"
-              value={settings.gender}
-              options={["Male", "Female", "Other"]}
-              onChange={val => updateSetting('gender', val)}
-            />
-            <button onClick={saveSettings}>Update Changes</button>
-            <button onClick={resetSettings} className="secondary">Reset to Defaults</button>
+      <div className="settings-section">
+        {userData.tab === 'Account' && (
+          <div className="section account-section">
+            {['name', 'email', 'age', 'height', 'weight'].map(field => (
+              <div key={field} className="input-group">
+                <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                <input
+                  type={field === 'email' ? 'email' : 'text'}
+                  value={profile[field]}
+                  onChange={e => handleChange('profile', field, e.target.value)}
+                  className={field === 'email' && !validateEmail(profile.email) ? 'input-error' : ''}
+                />
+                {field === 'email' && !validateEmail(profile.email) && (
+                  <span className="error-text">Invalid email</span>
+                )}
+              </div>
+            ))}
+            <div className="input-group">
+              <label>Gender</label>
+              <select value={profile.gender} onChange={e => handleChange('profile', 'gender', e.target.value)}>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
           </div>
         )}
 
-        {settings.tab === 'Workout' && (
-          <div>
-            <Toggle label="Workout Reminders" checked={settings.workoutReminders} onChange={val => updateSetting('workoutReminders', val)} />
-            <Toggle label="Goal Tracking" checked={settings.goalTracking} onChange={val => updateSetting('goalTracking', val)} />
-            <Select
-              label="Fitness Goal Type"
-              value={settings.goalType}
-              options={["Weight Loss", "Muscle Gain", "Endurance", "Flexibility"]}
-              onChange={val => updateSetting('goalType', val)}
-            />
-            <Input label="Target (e.g., 5kg)" value={settings.goalTarget} onChange={val => updateSetting('goalTarget', val)} />
-            <Input label="Timeframe (e.g., 3 months)" value={settings.goalTimeframe} onChange={val => updateSetting('goalTimeframe', val)} />
-            <Input label="Notification Time" type="time" value={settings.goalNotificationTime} onChange={val => updateSetting('goalNotificationTime', val)} />
-            <Select
-              label="Alert Method"
-              value={settings.goalAlertMethod}
-              options={["Push Notification", "Email"]}
-              onChange={val => updateSetting('goalAlertMethod', val)}
-            />
-            <button onClick={saveSettings}>Save Changes</button>
+        {userData.tab === 'Workout' && (
+          <div className="section workout-section">
+            {['workouts', 'equipment', 'timeConstraints'].map(field => (
+              <div key={field} className="input-group">
+                <label>{field.replace(/([A-Z])/g, ' $1')}</label>
+                <input
+                  type="text"
+                  value={preferences[field]}
+                  onChange={e => handleChange('preferences', field, e.target.value)}
+                />
+              </div>
+            ))}
           </div>
         )}
 
-        {settings.tab === 'Notifications' && (
-          <div>
-            <Toggle label="Workout Reminders" checked={settings.notifyWorkouts} onChange={val => updateSetting('notifyWorkouts', val)} />
-            <Toggle label="Progress Updates" checked={settings.notifyProgress} onChange={val => updateSetting('notifyProgress', val)} />
-            <Toggle label="Promotional Offers" checked={settings.notifyPromotions} onChange={val => updateSetting('notifyPromotions', val)} />
-            <button onClick={saveSettings}>Save Changes</button>
+        {userData.tab === 'Notifications' && (
+          <div className="section notification-section">
+            {Object.keys(notifications).map(key => (
+              <div key={key} className="toggle-wrapper">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={notifications[key]}
+                    onChange={e => handleToggle('notifications', key, e.target.checked)}
+                  />
+                  {key.replace('notify', '').replace(/([A-Z])/g, ' $1').trim()}
+                </label>
+              </div>
+            ))}
           </div>
         )}
 
-        {settings.tab === 'Data & Sync' && (
-          <div>
-            <Toggle label="Sync with Google Fit" checked={settings.syncGoogleFit} onChange={val => updateSetting('syncGoogleFit', val)} />
-            <Toggle label="Sync with Apple Health" checked={settings.syncAppleHealth} onChange={val => updateSetting('syncAppleHealth', val)} />
-            <Select
-              label="Sync Frequency"
-              value={settings.syncFrequency}
-              options={["Daily", "Weekly", "Monthly"]}
-              onChange={val => updateSetting('syncFrequency', val)}
-            />
-            <Toggle label="Sync over Wi-Fi only" checked={settings.syncOverWifiOnly} onChange={val => updateSetting('syncOverWifiOnly', val)} />
-            <button onClick={saveSettings}>Save Changes</button>
+        {userData.tab === 'Appearance' && (
+          <div className="section appearance-section">
+            <div className="input-group">
+              <label>Theme</label>
+              <select value={appearance.theme} onChange={e => handleChange('appearance', 'theme', e.target.value)}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+            <div className="input-group">
+              <label>Font Size</label>
+              <select value={appearance.fontSize} onChange={e => handleChange('appearance', 'fontSize', e.target.value)}>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
           </div>
         )}
 
-        {settings.tab === 'Appearance' && (
-          <div>
-            <Select
-              label="Theme"
-              value={settings.theme}
-              options={["light", "dark", "system"]}
-              onChange={val => updateSetting('theme', val)}
-            />
-            <Select
-              label="Font Size"
-              value={settings.fontSize}
-              options={["small", "medium", "large"]}
-              onChange={val => updateSetting('fontSize', val)}
-            />
-            <button onClick={saveSettings}>Save Changes</button>
+        {userData.tab === 'Subscription' && (
+        <div className="settings-section">
+          <h2>Subscription</h2>
+          <label>
+            Plan
+            <select
+              value={userData.subscription.plan}
+              onChange={e => handleChange('subscription', 'plan', e.target.value)}
+            >
+              <option value="Free">Free</option>
+              <option value="Pro">Pro</option>
+              <option value="Premium">Premium</option>
+            </select>
+          </label>
+        </div>
+        )}
+
+        {userData.tab === 'Support' && (
+          <div className="section support-section">
+            <p>Contact Support: {supportEmail}</p>
+            <div className="input-group">
+              <label>Feedback</label>
+              <input
+                type="text"
+                value={feedback}
+                onChange={e => setFeedback(e.target.value)}
+              />
+              <button onClick={handleFeedbackSubmit}>Submit</button>
+            </div>
+            {feedbackMessage && <p className="feedback-message">{feedbackMessage}</p>}
           </div>
         )}
 
-        {settings.tab === 'Subscription' && (
-          <div>
-            <p>Current Plan: {settings.subscriptionPlan}</p>
-            <button>Upgrade Plan</button>
-          </div>
-        )}
 
-        {settings.tab === 'Support' && (
-          <div>
-            <p>Contact Support: {settings.supportEmail}</p>
-            <Input
-              label="Send Feedback"
-              value={settings.feedback}
-              onChange={val => updateSetting('feedback', val)}
-            />
-            <button>Submit</button>
-          </div>
-        )}
+        <div className="settings-actions">
+          <button className="btn btn-save" onClick={handleSave} disabled={!isDirty}>
+            Save Settings
+          </button>
+          <button className="btn btn-reset" onClick={resetSettings}>
+            Reset to Defaults
+          </button>
+          {isDirty && <span className="unsaved-warning">You have unsaved changes</span>}
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default SettingsPage;
