@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom'; 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import { Droplet, BedDouble, Activity, TrendingUp, ListChecks, CalendarClock, CheckCircle, BarChart3, User, Info, Clock, Repeat, Weight, StickyNote } from 'lucide-react';
 
 const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
@@ -20,6 +21,7 @@ const formatTime = (timeString) => {
 
 function DashboardPage() {
   const location = useLocation();
+ const { user } = useAuth();
 
   const [userData, setUserData] = useState({
     name: 'Desmond Voyage',
