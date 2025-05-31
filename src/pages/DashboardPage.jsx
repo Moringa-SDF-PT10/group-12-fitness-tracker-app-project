@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 function DashboardPage() {
+  const { user } = useAuth();
+
   const [userData, setUserData] = useState({
-    name: 'Desmond Voyage',
+    name: user?.name || 'Desmond Voyage',
     weight: 70,
     goalWeight: 60,
     height: 165,
@@ -39,12 +42,14 @@ function DashboardPage() {
   };
 
   return (
-    <div className="dashboard">
-      <h1>Welcome, {userData.name}</h1>
+    <div className="dashboard p-6 text-center">
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+        {user ? `Welcome, ${user.name}` : 'Welcome'}
+      </h1>
 
       <div className="section">
         <h2>Weight Progress</h2>
-        <motion.div className="progress-bar" initial={{ width: 0 }} animate={{ width: `${weightProgress}%` }} />
+        <motion.div className="progress-bar bg-blue-400 h-4 rounded" initial={{ width: 0 }} animate={{ width: `${weightProgress}%` }} />
         <p>{userData.weight}kg / {userData.goalWeight}kg</p>
       </div>
 
