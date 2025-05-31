@@ -6,7 +6,7 @@ const LandingPage = () => (
       Welcome to FitMate 💪
     </h1>
     <p className="text-lg text-gray-600 mb-8 text-center">
-      <h2>Your fitness journey starts here.</h2>
+      Your fitness journey starts here.
     </p>
     <div className="flex space-x-4">
       <Link
