@@ -1,4 +1,3 @@
-// ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Edit3, Target, BarChart2, Save, Image as ImageIcon, AlertCircle, CheckCircle, LogOut } from 'lucide-react'; // Added icons

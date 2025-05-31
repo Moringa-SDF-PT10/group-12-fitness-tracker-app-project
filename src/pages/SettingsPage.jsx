@@ -1,4 +1,3 @@
-// SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import for navigation if needed
 import { Settings as SettingsIcon, UserCircle, Zap, Bell, Share2, Eye, ShieldCheck, MessageSquare, Save, RotateCcw, AlertCircle, CheckCircle } from 'lucide-react'; // Icons

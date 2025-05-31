@@ -1,33 +1,50 @@
-// DashboardPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom'; 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { motion } from 'framer-motion';
-import { Droplet, BedDouble, Activity, TrendingUp, ListChecks, CalendarClock, CheckCircle, BarChart3, User, Info } from 'lucide-react'; // Added some icons
+import { Droplet, BedDouble, Activity, TrendingUp, ListChecks, CalendarClock, CheckCircle, BarChart3, User, Info, Clock, Repeat, Weight, StickyNote } from 'lucide-react';
+
+const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+
+// Function to format time from "HH:mm" to "h:mm AM/PM"
+const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    const h = parseInt(hours, 10);
+    const m = parseInt(minutes, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const formattedHours = h % 12 || 12; // Convert 0 to 12 for 12 AM/PM
+    return `${formattedHours}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+};
+
 
 function DashboardPage() {
   const location = useLocation();
 
-  // Simulate fetching user data or using context/state management in a real app
   const [userData, setUserData] = useState({
     name: 'Desmond Voyage',
-    weight: 70, // kg
-    goalWeight: 65, // kg
-    height: 165, // cm
-    waterIntake: 5, // cups
-    waterGoal: 8, // cups
-    sleepHours: 7, // hrs
-    sleepGoal: 7.5, // hrs
+    weight: 70, 
+    goalWeight: 65, 
+    height: 165, 
+    waterIntake: 5, 
+    waterGoal: 8, 
+    sleepHours: 7, 
+    sleepGoal: 7.5, 
     fitnessLevel: 'Intermediate',
-    ringProgress: 75, // percentage for a primary goal (e.g. weekly activity)
+    ringProgress: 75, 
     weeklyProgress: [
       { day: 'Mon', activity: 30 }, { day: 'Tue', activity: 45 }, { day: 'Wed', activity: 60 },
       { day: 'Thu', activity: 30 }, { day: 'Fri', activity: 75 }, { day: 'Sat', activity: 90 },
       { day: 'Sun', activity: 40 },
     ],
-    completedWorkouts: ['Cardio Blast - 45 min', 'Yoga Flow - 60 min', 'Strength 101 - 50 min', 'Morning Run - 30 min', 'Evening Stretch - 20 min'],
-    upcomingWorkouts: ['HIIT Burn - Tomorrow 8:00 AM', 'Pilates - Sunday 10:00 AM'],
+    staticUpcomingWorkouts: [
+        { id: 'static1', name: 'Yoga Session', dateString: 'Tomorrow at 9:00 AM' },
+        { id: 'static2', name: 'Team Run', dateString: 'Next Monday at 6:30 PM' }
+    ],
   });
+
+  const [completedLoggedWorkouts, setCompletedLoggedWorkouts] = useState([]);
+  const [upcomingLoggedWorkouts, setUpcomingLoggedWorkouts] = useState([]);
 
   useEffect(() => {
     if (location.hash) {
@@ -37,15 +54,66 @@ function DashboardPage() {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
+
+    const storedLogsJSON = localStorage.getItem('loggedWorkouts');
+    if (storedLogsJSON) {
+        try {
+            const parsedLogs = JSON.parse(storedLogsJSON);
+            if (Array.isArray(parsedLogs)) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+
+                const past = [];
+                const future = [];
+
+                parsedLogs.forEach(log => {
+                    const logDate = new Date(log.date);
+                    const logDateUTC = new Date(Date.UTC(logDate.getUTCFullYear(), logDate.getUTCMonth(), logDate.getUTCDate()));
+
+                    if (logDateUTC >= today) {
+                        if (logDateUTC.getTime() === today.getTime() && log.time) {
+                            const now = new Date();
+                            const [logHours, logMinutes] = log.time.split(':').map(Number);
+                            if (logHours > now.getHours() || (logHours === now.getHours() && logMinutes > now.getMinutes())) {
+                                future.push(log);
+                            } else {
+                                past.push(log);
+                            }
+                        } else if (logDateUTC > today) {
+                           future.push(log);
+                        }
+                         else {
+                            past.push(log);
+                        }
+                    } else {
+                        past.push(log);
+                    }
+                });
+
+                past.sort((a, b) => {
+                    const dateComparison = new Date(b.date) - new Date(a.date);
+                    if (dateComparison !== 0) return dateComparison;
+                    return (b.time || "00:00").localeCompare(a.time || "00:00");
+                });
+                future.sort((a, b) => {
+                    const dateComparison = new Date(a.date) - new Date(b.date);
+                     if (dateComparison !== 0) return dateComparison;
+                    return (a.time || "00:00").localeCompare(b.time || "00:00");
+                }); 
+                
+                setCompletedLoggedWorkouts(past);
+                setUpcomingLoggedWorkouts(future);
+            }
+        } catch (e) {
+            console.error("Failed to parse logged workouts from localStorage", e);
+            setCompletedLoggedWorkouts([]);
+            setUpcomingLoggedWorkouts([]);
+        }
+    }
   }, [location.hash]);
 
   const weightLost = userData.weight > userData.goalWeight ? userData.weight - userData.goalWeight : 0;
-  const weightProgressPercent = userData.goalWeight < userData.weight ? 
-    Math.min(((userData.weight - userData.goalWeight) / (userData.weight - userData.goalWeight + (userData.goalWeight - (userData.goalWeight*0.8)))) *100, 100) 
-    : 100; // This logic might need refinement based on actual start weight. Let's assume current weight is start towards goal.
-            // For simplicity, if goal is 60 and current is 70, let start be 75. Progress = (75-70)/(75-60) * 100
-            // For now: progress towards goal:
-  const initialWeight = 75; // Example initial weight
+  const initialWeight = 75; 
   const progressToGoal = initialWeight > userData.goalWeight ? ((initialWeight - userData.weight) / (initialWeight - userData.goalWeight)) * 100 : 0;
 
 
@@ -70,8 +138,8 @@ function DashboardPage() {
   const waterProgress = (userData.waterIntake / userData.waterGoal) * 100;
   const sleepProgress = (userData.sleepHours / userData.sleepGoal) * 100;
 
-  const Card = ({ title, icon, children, className = "" }) => (
-    <div className={`bg-[#FFFFFF] p-5 md:p-6 rounded-2xl shadow-lg border border-[#F5E0D5] ${className}`}>
+  const Card = ({ title, icon, children, className = "", id }) => (
+    <div id={id} className={`bg-[#FFFFFF] p-5 md:p-6 rounded-2xl shadow-lg border border-[#F5E0D5] ${className}`}>
       {title && (
         <h2 className="text-xl font-semibold text-[#6D4C41] mb-4 flex items-center">
           {icon && React.cloneElement(icon, { className: "w-6 h-6 mr-3 text-[#FFB6C1]" })}
@@ -92,7 +160,6 @@ function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* User Quick Stats */}
         <Card title="Quick Stats" icon={<User />} className="lg:col-span-1">
             <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -114,7 +181,6 @@ function DashboardPage() {
             </div>
         </Card>
 
-        {/* Weight Progress to Goal */}
         <Card title="Weight Goal" icon={<TrendingUp />} className="lg:col-span-2">
           <div className="mb-3">
             <div className="flex justify-between text-sm text-[#A1887F] mb-1">
@@ -133,7 +199,6 @@ function DashboardPage() {
           </div>
         </Card>
         
-        {/* Primary Goal Ring (e.g. Weekly Activity) */}
         <Card title="Weekly Activity Goal" icon={<Activity />} className="flex flex-col items-center justify-center">
           <div className="relative w-36 h-36 sm:w-40 sm:h-40">
             <svg className="w-full h-full" viewBox="0 0 36 36">
@@ -159,7 +224,6 @@ function DashboardPage() {
           </div>
         </Card>
 
-        {/* Daily Trackers */}
         <Card title="Daily Habits" icon={<CheckCircle />} className="lg:col-span-2">
             <div className="space-y-4">
                 <div>
@@ -183,7 +247,6 @@ function DashboardPage() {
             </div>
         </Card>
 
-        {/* Weekly Progress Chart */}
         <Card title="Weekly Activity Breakdown" icon={<BarChart3 />} className="md:col-span-2 lg:col-span-3">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={userData.weeklyProgress} margin={{ top: 5, right: 20, left: -25, bottom: 5 }}>
@@ -201,30 +264,61 @@ function DashboardPage() {
           </ResponsiveContainer>
         </Card>
         
-        {/* Completed Workouts */}
         <Card title="Completed Workouts" icon={<ListChecks />} id="completed-workouts" className="md:col-span-1 lg:col-span-3">
-          {userData.completedWorkouts.length > 0 ? (
-            <ul className="space-y-2 text-sm">
-              {userData.completedWorkouts.map((workout, idx) => (
-                <li key={idx} className="flex items-center p-2 bg-[#FFDAC1]/20 rounded-lg">
-                    <CheckCircle className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
-                    <span className="text-[#6D4C41]">{workout}</span>
+          {completedLoggedWorkouts.length > 0 ? (
+            <ul className="space-y-3">
+              {completedLoggedWorkouts.map((log) => (
+                <li key={log.logId} className="p-3 bg-[#FFDAC1]/20 rounded-lg shadow-sm border border-[#F5E0D5]/50">
+                    <div className="flex justify-between items-start mb-1">
+                        <Link to={`/workouts/${log.exerciseId}`} className="text-md font-semibold text-[#FFB6C1] hover:underline">
+                            {capitalize(log.exerciseName)}
+                        </Link>
+                        <span className="text-xs text-[#A1887F] bg-[#FFFFFF] px-2 py-0.5 rounded-full border border-[#F5E0D5]">
+                            {new Date(log.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {log.time && ` at ${formatTime(log.time)}`}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs text-[#6D4C41]">
+                        <div className="flex items-center"><Clock size={14} className="mr-1.5 text-[#A1887F]" /> Duration: {log.duration || 'N/A'}</div>
+                        {log.sets && <div className="flex items-center"><Repeat size={14} className="mr-1.5 text-[#A1887F]" /> Sets: {log.sets}</div>}
+                        {log.reps && <div className="flex items-center"><Activity size={14} className="mr-1.5 text-[#A1887F]" /> Reps: {log.reps}</div>}
+                        {log.weight && <div className="flex items-center"><Weight size={14} className="mr-1.5 text-[#A1887F]" /> Weight: {log.weight} kg</div>}
+                    </div>
+                    {log.notes && (
+                        <p className="mt-2 text-xs text-[#A1887F] bg-[#FFFFFF] p-2 rounded-md border border-[#F5E0D5]">
+                           <StickyNote size={14} className="inline mr-1.5 mb-0.5 text-[#A1887F]" /> {log.notes}
+                        </p>
+                    )}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-[#A1887F] italic text-center py-4">No workouts completed yet. Let's get moving!</p>
+            <p className="text-[#A1887F] italic text-center py-4">No workouts logged yet. Go complete an exercise!</p>
           )}
         </Card>
 
-        {/* Upcoming Workouts */}
-        <Card title="Upcoming Schedule" icon={<CalendarClock />} className="md:col-span-1 lg:col-span-3">
-           {userData.upcomingWorkouts.length > 0 ? (
+        <Card title="Upcoming Schedule" icon={<CalendarClock />} id="upcoming-schedule" className="md:col-span-1 lg:col-span-3">
+           {(upcomingLoggedWorkouts.length > 0 || userData.staticUpcomingWorkouts.length > 0) ? (
             <ul className="space-y-2 text-sm">
-              {userData.upcomingWorkouts.map((workout, idx) => (
-                <li key={idx} className="flex items-center p-2 bg-[#FFDAC1]/20 rounded-lg">
+              {upcomingLoggedWorkouts.map((log) => (
+                <li key={log.logId} className="flex items-center p-3 bg-[#FFDAC1]/20 rounded-lg border border-[#F5E0D5]/50">
+                    <CalendarClock className="w-5 h-5 mr-3 text-blue-500 flex-shrink-0" />
+                    <div className="flex-grow">
+                        <Link to={`/workouts/${log.exerciseId}`} className="font-semibold text-[#6D4C41] hover:text-[#FFB6C1]">
+                            {capitalize(log.exerciseName)}
+                        </Link>
+                        <p className="text-xs text-[#A1887F]">
+                            On: {new Date(log.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {log.time && ` at ${formatTime(log.time)}`}
+                            {log.duration && ` - Duration: ${log.duration}`}
+                        </p>
+                    </div>
+                </li>
+              ))}
+              {upcomingLoggedWorkouts.length === 0 && userData.staticUpcomingWorkouts.map((workout) => ( // Fallback to static
+                <li key={workout.id} className="flex items-center p-2 bg-[#FFDAC1]/20 rounded-lg">
                     <CalendarClock className="w-4 h-4 mr-2 text-blue-500 flex-shrink-0" />
-                    <span className="text-[#6D4C41]">{workout}</span>
+                    <span className="text-[#6D4C41]">{workout.name} - {workout.dateString}</span>
                 </li>
               ))}
             </ul>
@@ -234,7 +328,6 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Reminder / Tip Section */}
       <div className="mt-8 p-4 bg-[#FFDAC1]/40 border-l-4 border-[#FFB6C1] text-[#6D4C41] rounded-lg shadow-md">
         <h3 className="font-semibold flex items-center"><Info className="w-5 h-5 mr-2 text-[#FFB6C1]" /> Friendly Reminder</h3>
         <p className="text-sm">Consistency is key! Even a short workout is better than none. Keep up the great work!</p>
