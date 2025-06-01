@@ -62,15 +62,48 @@ const StyledToggle = ({ label, checked, onChange, id }) => (
 );
 // --- End Styled Form Components ---
 
-const initialSettings = {
-  tab: 'Account', name: 'Desmond Voyage', email: 'voyage@example.com', age: 30, height: 175, weight: 70, gender: 'Male',
-  workoutReminders: true, goalTracking: true, goalType: 'Weight Loss', goalTarget: 'Lose 5kg', goalTimeframe: '3 months',
-  goalNotificationTime: '08:00', goalAlertMethod: 'Push Notification',
-  notifyProgressUpdates: true, notifyPromotions: false,
-  syncGoogleFit: false, syncAppleHealth: true, syncFrequency: 'Daily', syncOverWifiOnly: false,
-  theme: 'light', fontSize: 'medium',
-  subscriptionPlan: 'Premium', supportEmail: 'support@fitbuddy.com', feedback: '',
-};
+const defaultUserData = {
+    tab: 'Account',
+    profile: {
+      name: '',
+      email: '',
+      age: '',
+      gender: 'Male',
+      height: '',
+      weight: '',
+      photo: '',
+    },
+    goals: {
+      type: '',
+      target: '',
+      timeframe: '',
+    },
+    preferences: {
+      workouts: '',
+      equipment: '',
+      timeConstraints: '',
+    },
+    progress: {
+      weight: '',
+      totalWorkouts: '',
+      streak: '',
+      caloriesBurned: '',
+    },
+    notifications: {
+      notifyWorkouts: false,
+      notifyProgress: false,
+      notifyPromotions: false,
+    },
+    appearance: {
+      theme: 'light',
+      fontSize: 'medium',
+    },
+    subscription: {
+      plan: 'Free',
+    },
+    supportEmail: 'support@fitbuddy.com',
+    feedback: '',
+  };
 
 
 function SettingsPage() {
@@ -78,10 +111,10 @@ function SettingsPage() {
   const [settings, setSettings] = useState(() => {
     try {
         const saved = localStorage.getItem('appSettings'); // Use a specific key
-        return saved ? { ...initialSettings, ...JSON.parse(saved) } : initialSettings;
+        return saved ? { ...defaultUserData, ...JSON.parse(saved) } : defaultUserData;
     } catch (error) {
         console.error("Failed to parse appSettings from localStorage", error);
-        return initialSettings;
+        return defaultUserData;
     }
   });
   const [emailError, setEmailError] = useState('');
@@ -113,7 +146,7 @@ function SettingsPage() {
 
   const resetToDefaults = () => {
     if(window.confirm("Are you sure you want to reset all settings to their default values? This action cannot be undone.")){
-        setSettings(initialSettings);
+        setSettings(defaultUserData);
         setEmailError('');
         setShowConfirmation(true);
         setTimeout(() => setShowConfirmation(false), 3000);
