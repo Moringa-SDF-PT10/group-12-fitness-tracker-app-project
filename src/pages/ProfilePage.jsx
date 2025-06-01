@@ -242,7 +242,7 @@ const ProfilePage = () => {
 
   const renderProgressAnalytics = () => (
     <div className="profile-section">
-      <h2>Progress Tracking & Analytics</h2>
+      <h2>Progress Tracking</h2>
       <h3>Body Metrics Dashboard</h3>
       {renderInput('Recent Weight', 'progress', 'weight', 'number')}
       {renderInput('Body Measurements', 'progress', 'bodyMeasurements')}
