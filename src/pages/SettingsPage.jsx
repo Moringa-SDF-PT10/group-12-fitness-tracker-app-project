@@ -62,254 +62,300 @@ const StyledToggle = ({ label, checked, onChange, id }) => (
 );
 // --- End Styled Form Components ---
 
-const initialSettings = {
-  tab: 'Account', name: 'Desmond Voyage', email: 'voyage@example.com', age: 30, height: 175, weight: 70, gender: 'Male',
-  workoutReminders: true, goalTracking: true, goalType: 'Weight Loss', goalTarget: 'Lose 5kg', goalTimeframe: '3 months',
-  goalNotificationTime: '08:00', goalAlertMethod: 'Push Notification',
-  notifyProgressUpdates: true, notifyPromotions: false,
-  syncGoogleFit: false, syncAppleHealth: true, syncFrequency: 'Daily', syncOverWifiOnly: false,
-  theme: 'light', fontSize: 'medium',
-  subscriptionPlan: 'Premium', supportEmail: 'support@fitbuddy.com', feedback: '',
+const defaultUserData = {
+    tab: 'Account',
+    profile: {
+      name: '',
+      email: '',
+      age: '',
+      gender: 'Male',
+      height: '',
+      weight: '',
+      photo: '',
+    },
+    goals: {
+      type: '',
+      target: '',
+      timeframe: '',
+    },
+    preferences: {
+      workouts: '',
+      equipment: '',
+      timeConstraints: '',
+    },
+    progress: {
+      weight: '',
+      totalWorkouts: '',
+      streak: '',
+      caloriesBurned: '',
+    },
+    notifications: {
+      notifyWorkouts: false,
+      notifyProgress: false,
+      notifyPromotions: false,
+    },
+    appearance: {
+      theme: 'light',
+      fontSize: 'medium',
+    },
+    subscription: {
+      plan: 'Free',
+    },
+    supportEmail: 'support@fitbuddy.com',
+    feedback: '',
+  };
+
+const SettingsPage = () => {
+  
+  
+  const [feedback, setFeedback] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+
+  const [userData, setUserData] = useState(defaultUserData);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const local = localStorage.getItem('userData');
+        if (local) {
+          setUserData(prev => ({ ...defaultUserData, ...JSON.parse(local) }));
+        } else {
+          const res = await fetch(API_URL);
+          if (!res.ok) throw new Error('Fetch failed');
+          const data = await res.json();
+          const apiUserData = Array.isArray(data) ? data[0] : data;
+          setUserData(prev => ({ ...defaultUserData, ...apiUserData }));
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', userData.appearance.theme);
+    document.documentElement.setAttribute('data-font-size', userData.appearance.fontSize);
+  }, [userData.appearance.theme, userData.appearance.fontSize]);
+
+  const validateEmail = email => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+
+  const handleChange = (section, field, value) => {
+    const numericFields = ['age', 'height', 'weight', 'streak', 'caloriesBurned', 'totalWorkouts'];
+    const parsedValue = numericFields.includes(field) ? (parseFloat(value) || '') : value;
+
+    setUserData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: parsedValue,
+      },
+    }));
+    setIsDirty(true);
+  };
+
+  const handleToggle = (section, field, value) => {
+    setUserData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+    setIsDirty(true);
+  };
+
+  const handleTabChange = tab => setUserData(prev => ({ ...prev, tab }));
+
+  const resetSettings = () => {
+    setUserData(defaultUserData);
+    setIsDirty(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setIsDirty(false);
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      if (!res.ok) throw new Error('Save failed');
+      alert('Settings saved successfully!');
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('Error saving settings');
+    }
+  };
+
+  const handleFeedbackSubmit = () => {
+  if (feedback.trim() === '') {
+    setFeedbackMessage('Please enter feedback before submitting.');
+  } else {
+    setFeedbackMessage('Thank you for your feedback! Our team will get back to you shortly');
+    setFeedback(''); // clear input from the user
+  }
+
+  //clear the message after a few seconds
+  setTimeout(() => setFeedbackMessage(''), 4000);
 };
 
+const tabsConfig = [
+{ id: 'Account', label: 'Account', icon: <UserCircle /> },
+{ id: 'Workout', label: 'Workout Goals', icon: <Zap /> },
+{ id: 'Notifications', label: 'Notifications', icon: <Bell /> },
+{ id: 'DataSync', label: 'Data & Sync', icon: <Share2 /> },
+{ id: 'Appearance', label: 'Appearance', icon: <Eye /> },
+{ id: 'Subscription', label: 'Subscription', icon: <ShieldCheck /> },
+{ id: 'Support', label: 'Support', icon: <MessageSquare /> },
+];
 
-function SettingsPage() {
-  const navigate = useNavigate();
-  const [settings, setSettings] = useState(() => {
-    try {
-        const saved = localStorage.getItem('appSettings'); // Use a specific key
-        return saved ? { ...initialSettings, ...JSON.parse(saved) } : initialSettings;
-    } catch (error) {
-        console.error("Failed to parse appSettings from localStorage", error);
-        return initialSettings;
-    }
-  });
-  const [emailError, setEmailError] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
+ const { profile, goals, preferences, notifications, appearance, subscription, supportEmail } = userData;
 
-  useEffect(() => {
-    localStorage.setItem('appSettings', JSON.stringify(settings));
-  }, [settings]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', settings.theme);
-    document.documentElement.style.setProperty('--font-scale-factor', 
-        settings.fontSize === 'small' ? '0.9' : settings.fontSize === 'large' ? '1.1' : '1');
-  }, [settings.theme, settings.fontSize]);
-
-  const updateSetting = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-     if (key === 'email') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!value) {
-        setEmailError('Email is required.');
-      } else if (!emailRegex.test(value)) {
-        setEmailError('Please enter a valid email address.');
-      } else {
-        setEmailError('');
-      }
-    }
-  };
-
-  const resetToDefaults = () => {
-    if(window.confirm("Are you sure you want to reset all settings to their default values? This action cannot be undone.")){
-        setSettings(initialSettings);
-        setEmailError('');
-        setShowConfirmation(true);
-        setTimeout(() => setShowConfirmation(false), 3000);
-    }
-  };
-
-  const handleSaveChanges = () => {
-    if (emailError && settings.tab === 'Account') { // Only block save if email error is relevant to current tab
-        alert("Please fix the errors in the Account tab before saving.");
-        return;
-    }
-    localStorage.setItem('appSettings', JSON.stringify(settings));
-    setShowConfirmation(true);
-    setTimeout(() => setShowConfirmation(false), 3000);
-  };
-  
-  const tabsConfig = [
-    { id: 'Account', label: 'Account', icon: <UserCircle /> },
-    { id: 'Workout', label: 'Workout Goals', icon: <Zap /> },
-    { id: 'Notifications', label: 'Notifications', icon: <Bell /> },
-    { id: 'DataSync', label: 'Data & Sync', icon: <Share2 /> },
-    { id: 'Appearance', label: 'Appearance', icon: <Eye /> },
-    { id: 'Subscription', label: 'Subscription', icon: <ShieldCheck /> },
-    { id: 'Support', label: 'Support', icon: <MessageSquare /> },
-  ];
+  const renderInput = (label, section, field, type = 'text') => (
+    <StyledInputGroup label={label} htmlFor={field} error={field === 'email' && !validateEmail(profile.email) ? 'Invalid email' : ''}>
+      <StyledInput
+        id={field}
+        type={type}
+        value={userData[section][field]}
+        onChange={val => handleChange(section, field, val)}
+        placeholder={`Enter ${label}`}
+        error={field === 'email' && !validateEmail(profile.email)}
+      />
+    </StyledInputGroup>
+  );
 
   return (
-    <div className="min-h-screen bg-[#FFF7F5] p-4 md:p-6 lg:p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#6D4C41] flex items-center">
-            <SettingsIcon className="w-8 h-8 mr-3 text-[#FFB6C1]" /> Application Settings
-        </h1>
-      </header>
+    <div className="max-w-3xl mx-auto p-6 bg-[#FFF5F7] rounded-2xl shadow-xl">
+      <div className="flex justify-between mb-6">
+        {['Account', 'Workout', 'Notifications', 'Appearance', 'Subscription', 'Support'].map(tab => (
+          <button
+            key={tab}
+            className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors ${userData.tab === tab ? 'bg-[#FFB6C1] text-white' : 'bg-[#F5E0D5] text-[#6D4C41]'}`}
+            onClick={() => handleTabChange(tab)}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-      <div className="bg-[#FFFFFF] p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-[#F5E0D5]">
-        <div className="mb-8 flex flex-wrap -mx-1 border-b-2 border-[#FFDAC1]/50">
-          {tabsConfig.map(tab => (
-            <button
-              key={tab.id}
-              className={`flex items-center space-x-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors focus:outline-none
-                          ${settings.tab === tab.id
-                              ? 'border-b-2 border-[#FFB6C1] text-[#FFB6C1]'
-                              : 'text-[#A1887F] hover:text-[#6D4C41]'
-                          }`}
-              onClick={() => updateSetting('tab', tab.id)}
-            >
-              {React.cloneElement(tab.icon, {className: "w-4 h-4 sm:w-5 sm:h-5"})}
-              <span>{tab.label}</span>
-            </button>
+      {userData.tab === 'Account' && (
+        <div>
+          {renderInput('Name', 'profile', 'name')}
+          {renderInput('Email', 'profile', 'email', 'email')}
+          {renderInput('Age', 'profile', 'age')}
+          {renderInput('Height (cm)', 'profile', 'height')}
+          {renderInput('Weight (kg)', 'profile', 'weight')}
+          <StyledInputGroup label="Gender" htmlFor="gender">
+            <StyledSelect
+              value={profile.gender}
+              onChange={val => handleChange('profile', 'gender', val)}
+              options={['Male', 'Female', 'Other']}
+            />
+          </StyledInputGroup>
+        </div>
+      )}
+
+      {userData.tab === 'Workout' && (
+        <div>
+          {['workouts', 'equipment', 'timeConstraints'].map(field => (
+            renderInput(field.replace(/([A-Z])/g, ' $1'), 'preferences', field)
           ))}
         </div>
+      )}
 
-        <div className="tab-content min-h-[300px]"> {/* Added min-height for consistent spacing */}
-          {settings.tab === 'Account' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-              <StyledInputGroup label="Full Name" htmlFor="name">
-                <StyledInput id="name" value={settings.name} onChange={val => updateSetting('name', val)} />
-              </StyledInputGroup>
-              <StyledInputGroup label="Email Address" htmlFor="email" error={emailError}>
-                <StyledInput id="email" type="email" value={settings.email} onChange={val => updateSetting('email', val)} error={!!emailError} />
-              </StyledInputGroup>
-              <StyledInputGroup label="Age" htmlFor="age">
-                <StyledInput id="age" type="number" value={settings.age} onChange={val => updateSetting('age', val)} />
-              </StyledInputGroup>
-              <StyledInputGroup label="Gender" htmlFor="gender">
-                <StyledSelect id="gender" value={settings.gender} options={["Male", "Female", "Non-binary", "Prefer not to say"]} onChange={val => updateSetting('gender', val)} />
-              </StyledInputGroup>
-              <StyledInputGroup label="Height (cm)" htmlFor="height">
-                <StyledInput id="height" type="number" value={settings.height} onChange={val => updateSetting('height', val)} />
-              </StyledInputGroup>
-              <StyledInputGroup label="Weight (kg)" htmlFor="weight">
-                <StyledInput id="weight" type="number" value={settings.weight} onChange={val => updateSetting('weight', val)} />
-              </StyledInputGroup>
-            </div>
-          )}
-
-          {settings.tab === 'Workout' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <div className="md:col-span-2">
-                    <StyledToggle id="workoutReminders" label="Enable Workout Reminders" checked={settings.workoutReminders} onChange={val => updateSetting('workoutReminders', val)} />
-                    <StyledToggle id="goalTracking" label="Enable Goal Tracking" checked={settings.goalTracking} onChange={val => updateSetting('goalTracking', val)} />
-                </div>
-                <StyledInputGroup label="Fitness Goal Type" htmlFor="goalType">
-                    <StyledSelect id="goalType" value={settings.goalType} options={["Weight Loss", "Muscle Gain", "Endurance Improvement", "Flexibility & Mobility", "General Fitness"]} onChange={val => updateSetting('goalType', val)} />
-                </StyledInputGroup>
-                <StyledInputGroup label="Specific Target" htmlFor="goalTarget">
-                    <StyledInput id="goalTarget" value={settings.goalTarget} onChange={val => updateSetting('goalTarget', val)} placeholder="e.g., Lose 5kg, Run 10km" />
-                </StyledInputGroup>
-                <StyledInputGroup label="Desired Timeframe" htmlFor="goalTimeframe">
-                    <StyledInput id="goalTimeframe" value={settings.goalTimeframe} onChange={val => updateSetting('goalTimeframe', val)} placeholder="e.g., 3 months, By December" />
-                </StyledInputGroup>
-                <StyledInputGroup label="Reminder Time for Goals" htmlFor="goalNotificationTime">
-                    <StyledInput id="goalNotificationTime" type="time" value={settings.goalNotificationTime} onChange={val => updateSetting('goalNotificationTime', val)} />
-                </StyledInputGroup>
-                 <StyledInputGroup label="Goal Alert Method" htmlFor="goalAlertMethod">
-                    <StyledSelect id="goalAlertMethod" value={settings.goalAlertMethod} options={["Push Notification", "Email", "In-app Alert"]} onChange={val => updateSetting('goalAlertMethod', val)} />
-                </StyledInputGroup>
-            </div>
-          )}
-          
-          {settings.tab === 'Notifications' && (
-            <div>
-                <StyledToggle id="notifyProgressUpdates" label="Progress Updates & Milestones" checked={settings.notifyProgressUpdates} onChange={val => updateSetting('notifyProgressUpdates', val)} />
-                <StyledToggle id="notifyPromotions" label="Special Offers & Promotions" checked={settings.notifyPromotions} onChange={val => updateSetting('notifyPromotions', val)} />
-                <StyledToggle id="notifyAppUpdates" label="App Updates & New Features" checked={settings.notifyAppUpdates || true} onChange={val => updateSetting('notifyAppUpdates', val)} />
-            </div>
-          )}
-
-          {settings.tab === 'DataSync' && (
-             <div>
-                <StyledToggle id="syncGoogleFit" label="Sync with Google Fit" checked={settings.syncGoogleFit} onChange={val => updateSetting('syncGoogleFit', val)} />
-                <StyledToggle id="syncAppleHealth" label="Sync with Apple Health (iOS only)" checked={settings.syncAppleHealth} onChange={val => updateSetting('syncAppleHealth', val)} />
-                <StyledInputGroup label="Automatic Sync Frequency" htmlFor="syncFrequency">
-                    <StyledSelect id="syncFrequency" value={settings.syncFrequency} options={["Never", "Daily", "Every 12 hours", "Weekly"]} onChange={val => updateSetting('syncFrequency', val)} />
-                </StyledInputGroup>
-                <StyledToggle id="syncOverWifiOnly" label="Sync over Wi-Fi only" checked={settings.syncOverWifiOnly} onChange={val => updateSetting('syncOverWifiOnly', val)} />
-            </div>
-          )}
-
-          {settings.tab === 'Appearance' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <StyledInputGroup label="Application Theme" htmlFor="theme">
-                    <StyledSelect id="theme" value={settings.theme} options={[{value: 'light', label: 'Light Mode'}, {value: 'dark', label: 'Dark Mode'}, {value: 'system', label: 'System Default'}]} onChange={val => updateSetting('theme', val)} />
-                </StyledInputGroup>
-                <StyledInputGroup label="Font Size" htmlFor="fontSize">
-                    <StyledSelect id="fontSize" value={settings.fontSize} options={[{value: 'small', label: 'Small'}, {value: 'medium', label: 'Medium (Default)'}, {value: 'large', label: 'Large'}]} onChange={val => updateSetting('fontSize', val)} />
-                </StyledInputGroup>
-            </div>
-          )}
-          
-          {settings.tab === 'Subscription' && (
-            <div>
-                <p className="text-md text-[#6D4C41] mb-2">Your Current Plan: <span className="font-semibold text-[#FFB6C1]">{settings.subscriptionPlan}</span></p>
-                {settings.subscriptionPlan.toLowerCase() === 'free' ? (
-                    <button className="px-6 py-2.5 bg-[#FFB6C1] hover:bg-opacity-80 text-white font-semibold rounded-xl shadow hover:shadow-md transition-all">
-                        Upgrade to Premium
-                    </button>
-                ) : (
-                    <p className="text-sm text-[#A1887F]">You have access to all premium features. Thank you!</p>
-                )}
-                {/* More subscription details can go here */}
-            </div>
-          )}
-
-          {settings.tab === 'Support' && (
-            <div>
-                <p className="text-md text-[#6D4C41] mb-4">Need help? Contact us at: <a href={`mailto:${settings.supportEmail}`} className="text-[#FFB6C1] hover:underline">{settings.supportEmail}</a></p>
-                <StyledInputGroup label="Send Feedback or Report an Issue" htmlFor="feedback">
-                    <textarea
-                        id="feedback"
-                        value={settings.feedback}
-                        onChange={e => updateSetting('feedback', e.target.value)}
-                        rows="4"
-                        className="w-full px-4 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
-                        placeholder="We value your feedback..."
-                    />
-                </StyledInputGroup>
-                <button 
-                    className="px-6 py-2.5 bg-[#FFB6C1] hover:bg-opacity-80 text-white font-semibold rounded-xl shadow hover:shadow-md transition-all"
-                    onClick={() => { alert('Feedback submitted. Thank you!'); updateSetting('feedback', '');}}
-                    disabled={!settings.feedback.trim()}
-                >
-                    Submit Feedback
-                </button>
-            </div>
-          )}
+      {userData.tab === 'Notifications' && (
+        <div>
+          {Object.keys(notifications).map(key => (
+            <StyledToggle
+              key={key}
+              id={key}
+              label={key.replace('notify', '').replace(/([A-Z])/g, ' $1').trim()}
+              checked={notifications[key]}
+              onChange={val => handleToggle('notifications', key, val)}
+            />
+          ))}
         </div>
+      )}
 
-        {/* Action Buttons */}
-        <div className="mt-10 pt-6 border-t border-[#FFDAC1]/50 flex flex-col sm:flex-row items-center justify-end space-y-3 sm:space-y-0 sm:space-x-4">
-            {showConfirmation && (
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity:0 }}
-                    className="flex items-center text-green-600 text-sm order-first sm:order-none sm:mr-auto"
-                >
-                    <CheckCircle className="w-5 h-5 mr-2"/> Settings saved!
-                </motion.div>
-            )}
-            <button
-                onClick={resetToDefaults}
-                className="w-full sm:w-auto px-6 py-2.5 text-[#6D4C41] bg-[#FFDAC1]/50 hover:bg-[#FFDAC1]/80 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center"
-            >
-               <RotateCcw className="w-4 h-4 mr-2" /> Reset Defaults
-            </button>
-            <button 
-                className={`w-full sm:w-auto px-8 py-2.5 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center
-                            ${(settings.tab === 'Account' && !!emailError) ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FFB6C1] hover:bg-opacity-80'}`}
-                onClick={handleSaveChanges}
-                disabled={(settings.tab === 'Account' && !!emailError)}
-            >
-                <Save className="w-5 h-5 mr-2"/> Save Changes
-            </button>
+      {userData.tab === 'Appearance' && (
+        <div>
+          <StyledInputGroup label="Theme" htmlFor="theme">
+            <StyledSelect
+              value={appearance.theme}
+              onChange={val => handleChange('appearance', 'theme', val)}
+              options={['light', 'dark', 'system']}
+            />
+          </StyledInputGroup>
+          <StyledInputGroup label="Font Size" htmlFor="fontSize">
+            <StyledSelect
+              value={appearance.fontSize}
+              onChange={val => handleChange('appearance', 'fontSize', val)}
+              options={['small', 'medium', 'large']}
+            />
+          </StyledInputGroup>
         </div>
+      )}
+
+      {userData.tab === 'Subscription' && (
+        <StyledInputGroup label="Plan" htmlFor="plan">
+          <StyledSelect
+            value={subscription.plan}
+            onChange={val => handleChange('subscription', 'plan', val)}
+            options={['Free', 'Pro', 'Premium']}
+          />
+        </StyledInputGroup>
+      )}
+
+      {userData.tab === 'Support' && (
+        <div>
+          <p className="text-[#6D4C41] mb-2">Contact Support: {supportEmail}</p>
+          <StyledInputGroup label="Feedback" htmlFor="feedback">
+            <StyledInput
+              id="feedback"
+              value={feedback}
+              onChange={setFeedback}
+              placeholder="Write your feedback..."
+            />
+          </StyledInputGroup>
+          <button
+            className="bg-[#FFB6C1] text-white px-4 py-2 rounded-xl shadow hover:bg-[#f794b6] transition-colors"
+            onClick={handleFeedbackSubmit}
+          >
+            Submit Feedback
+          </button>
+          {feedbackMessage && <p className="mt-2 text-green-600 flex items-center"><CheckCircle className="w-4 h-4 mr-1" />{feedbackMessage}</p>}
+        </div>
+      )}
+
+      <div className="flex justify-between items-center mt-8">
+        <button
+          className="flex items-center gap-2 bg-[#FFB6C1] text-white px-4 py-2 rounded-xl shadow hover:bg-[#f794b6] transition-colors disabled:opacity-50"
+          onClick={handleSave}
+          disabled={!isDirty}
+        >
+          <Save className="w-4 h-4" /> Save Settings
+        </button>
+        <button
+          className="flex items-center gap-2 text-[#6D4C41] bg-[#F5E0D5] px-4 py-2 rounded-xl hover:bg-[#f5d3c1] transition-colors"
+          onClick={resetSettings}
+        >
+          <RotateCcw className="w-4 h-4" /> Reset to Defaults
+        </button>
+        {isDirty && (
+          <span className="text-sm text-red-500 flex items-center gap-1">
+            <AlertCircle className="w-4 h-4" /> Unsaved changes
+          </span>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default SettingsPage;
