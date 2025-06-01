@@ -105,12 +105,6 @@ const defaultUserData = {
     feedback: '',
   };
 
-
-
-
-
-
-
 const SettingsPage = () => {
   
   
@@ -212,16 +206,38 @@ const SettingsPage = () => {
   setTimeout(() => setFeedbackMessage(''), 4000);
 };
 
+const tabsConfig = [
+{ id: 'Account', label: 'Account', icon: <UserCircle /> },
+{ id: 'Workout', label: 'Workout Goals', icon: <Zap /> },
+{ id: 'Notifications', label: 'Notifications', icon: <Bell /> },
+{ id: 'DataSync', label: 'Data & Sync', icon: <Share2 /> },
+{ id: 'Appearance', label: 'Appearance', icon: <Eye /> },
+{ id: 'Subscription', label: 'Subscription', icon: <ShieldCheck /> },
+{ id: 'Support', label: 'Support', icon: <MessageSquare /> },
+];
 
-  const { profile, goals, preferences, notifications, appearance, subscription, supportEmail } = userData;
+ const { profile, goals, preferences, notifications, appearance, subscription, supportEmail } = userData;
+
+  const renderInput = (label, section, field, type = 'text') => (
+    <StyledInputGroup label={label} htmlFor={field} error={field === 'email' && !validateEmail(profile.email) ? 'Invalid email' : ''}>
+      <StyledInput
+        id={field}
+        type={type}
+        value={userData[section][field]}
+        onChange={val => handleChange(section, field, val)}
+        placeholder={`Enter ${label}`}
+        error={field === 'email' && !validateEmail(profile.email)}
+      />
+    </StyledInputGroup>
+  );
 
   return (
-    <div className="settings-page">
-      <div className="tabs">
+    <div className="max-w-3xl mx-auto p-6 bg-[#FFF5F7] rounded-2xl shadow-xl">
+      <div className="flex justify-between mb-6">
         {['Account', 'Workout', 'Notifications', 'Appearance', 'Subscription', 'Support'].map(tab => (
           <button
             key={tab}
-            className={`tab-btn ${userData.tab === tab ? 'active' : ''}`}
+            className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors ${userData.tab === tab ? 'bg-[#FFB6C1] text-white' : 'bg-[#F5E0D5] text-[#6D4C41]'}`}
             onClick={() => handleTabChange(tab)}
           >
             {tab}
@@ -229,130 +245,114 @@ const SettingsPage = () => {
         ))}
       </div>
 
-      <div className="settings-section">
-        {userData.tab === 'Account' && (
-          <div className="section account-section">
-            {['name', 'email', 'age', 'height', 'weight'].map(field => (
-              <div key={field} className="input-group">
-                <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                <input
-                  type={field === 'email' ? 'email' : 'text'}
-                  value={profile[field]}
-                  onChange={e => handleChange('profile', field, e.target.value)}
-                  className={field === 'email' && !validateEmail(profile.email) ? 'input-error' : ''}
-                />
-                {field === 'email' && !validateEmail(profile.email) && (
-                  <span className="error-text">Invalid email</span>
-                )}
-              </div>
-            ))}
-            <div className="input-group">
-              <label>Gender</label>
-              <select value={profile.gender} onChange={e => handleChange('profile', 'gender', e.target.value)}>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Other</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {userData.tab === 'Workout' && (
-          <div className="section workout-section">
-            {['workouts', 'equipment', 'timeConstraints'].map(field => (
-              <div key={field} className="input-group">
-                <label>{field.replace(/([A-Z])/g, ' $1')}</label>
-                <input
-                  type="text"
-                  value={preferences[field]}
-                  onChange={e => handleChange('preferences', field, e.target.value)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {userData.tab === 'Notifications' && (
-          <div className="section notification-section">
-            {Object.keys(notifications).map(key => (
-              <div key={key} className="toggle-wrapper">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={notifications[key]}
-                    onChange={e => handleToggle('notifications', key, e.target.checked)}
-                  />
-                  {key.replace('notify', '').replace(/([A-Z])/g, ' $1').trim()}
-                </label>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {userData.tab === 'Appearance' && (
-          <div className="section appearance-section">
-            <div className="input-group">
-              <label>Theme</label>
-              <select value={appearance.theme} onChange={e => handleChange('appearance', 'theme', e.target.value)}>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </select>
-            </div>
-            <div className="input-group">
-              <label>Font Size</label>
-              <select value={appearance.fontSize} onChange={e => handleChange('appearance', 'fontSize', e.target.value)}>
-                <option value="small">Small</option>
-                <option value="medium">Medium</option>
-                <option value="large">Large</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {userData.tab === 'Subscription' && (
-        <div className="settings-section">
-          <h2>Subscription</h2>
-          <label>
-            Plan
-            <select
-              value={userData.subscription.plan}
-              onChange={e => handleChange('subscription', 'plan', e.target.value)}
-            >
-              <option value="Free">Free</option>
-              <option value="Pro">Pro</option>
-              <option value="Premium">Premium</option>
-            </select>
-          </label>
+      {userData.tab === 'Account' && (
+        <div>
+          {renderInput('Name', 'profile', 'name')}
+          {renderInput('Email', 'profile', 'email', 'email')}
+          {renderInput('Age', 'profile', 'age')}
+          {renderInput('Height (cm)', 'profile', 'height')}
+          {renderInput('Weight (kg)', 'profile', 'weight')}
+          <StyledInputGroup label="Gender" htmlFor="gender">
+            <StyledSelect
+              value={profile.gender}
+              onChange={val => handleChange('profile', 'gender', val)}
+              options={['Male', 'Female', 'Other']}
+            />
+          </StyledInputGroup>
         </div>
-        )}
+      )}
 
-        {userData.tab === 'Support' && (
-          <div className="section support-section">
-            <p>Contact Support: {supportEmail}</p>
-            <div className="input-group">
-              <label>Feedback</label>
-              <input
-                type="text"
-                value={feedback}
-                onChange={e => setFeedback(e.target.value)}
-              />
-              <button onClick={handleFeedbackSubmit}>Submit</button>
-            </div>
-            {feedbackMessage && <p className="feedback-message">{feedbackMessage}</p>}
-          </div>
-        )}
-
-
-        <div className="settings-actions">
-          <button className="btn btn-save" onClick={handleSave} disabled={!isDirty}>
-            Save Settings
-          </button>
-          <button className="btn btn-reset" onClick={resetSettings}>
-            Reset to Defaults
-          </button>
-          {isDirty && <span className="unsaved-warning">You have unsaved changes</span>}
+      {userData.tab === 'Workout' && (
+        <div>
+          {['workouts', 'equipment', 'timeConstraints'].map(field => (
+            renderInput(field.replace(/([A-Z])/g, ' $1'), 'preferences', field)
+          ))}
         </div>
+      )}
+
+      {userData.tab === 'Notifications' && (
+        <div>
+          {Object.keys(notifications).map(key => (
+            <StyledToggle
+              key={key}
+              id={key}
+              label={key.replace('notify', '').replace(/([A-Z])/g, ' $1').trim()}
+              checked={notifications[key]}
+              onChange={val => handleToggle('notifications', key, val)}
+            />
+          ))}
+        </div>
+      )}
+
+      {userData.tab === 'Appearance' && (
+        <div>
+          <StyledInputGroup label="Theme" htmlFor="theme">
+            <StyledSelect
+              value={appearance.theme}
+              onChange={val => handleChange('appearance', 'theme', val)}
+              options={['light', 'dark', 'system']}
+            />
+          </StyledInputGroup>
+          <StyledInputGroup label="Font Size" htmlFor="fontSize">
+            <StyledSelect
+              value={appearance.fontSize}
+              onChange={val => handleChange('appearance', 'fontSize', val)}
+              options={['small', 'medium', 'large']}
+            />
+          </StyledInputGroup>
+        </div>
+      )}
+
+      {userData.tab === 'Subscription' && (
+        <StyledInputGroup label="Plan" htmlFor="plan">
+          <StyledSelect
+            value={subscription.plan}
+            onChange={val => handleChange('subscription', 'plan', val)}
+            options={['Free', 'Pro', 'Premium']}
+          />
+        </StyledInputGroup>
+      )}
+
+      {userData.tab === 'Support' && (
+        <div>
+          <p className="text-[#6D4C41] mb-2">Contact Support: {supportEmail}</p>
+          <StyledInputGroup label="Feedback" htmlFor="feedback">
+            <StyledInput
+              id="feedback"
+              value={feedback}
+              onChange={setFeedback}
+              placeholder="Write your feedback..."
+            />
+          </StyledInputGroup>
+          <button
+            className="bg-[#FFB6C1] text-white px-4 py-2 rounded-xl shadow hover:bg-[#f794b6] transition-colors"
+            onClick={handleFeedbackSubmit}
+          >
+            Submit Feedback
+          </button>
+          {feedbackMessage && <p className="mt-2 text-green-600 flex items-center"><CheckCircle className="w-4 h-4 mr-1" />{feedbackMessage}</p>}
+        </div>
+      )}
+
+      <div className="flex justify-between items-center mt-8">
+        <button
+          className="flex items-center gap-2 bg-[#FFB6C1] text-white px-4 py-2 rounded-xl shadow hover:bg-[#f794b6] transition-colors disabled:opacity-50"
+          onClick={handleSave}
+          disabled={!isDirty}
+        >
+          <Save className="w-4 h-4" /> Save Settings
+        </button>
+        <button
+          className="flex items-center gap-2 text-[#6D4C41] bg-[#F5E0D5] px-4 py-2 rounded-xl hover:bg-[#f5d3c1] transition-colors"
+          onClick={resetSettings}
+        >
+          <RotateCcw className="w-4 h-4" /> Reset to Defaults
+        </button>
+        {isDirty && (
+          <span className="text-sm text-red-500 flex items-center gap-1">
+            <AlertCircle className="w-4 h-4" /> Unsaved changes
+          </span>
+        )}
       </div>
     </div>
   );
