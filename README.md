@@ -1,15 +1,83 @@
-# React + Vite
+# Fit Mate
+This group project is an interactive fitness tracking APP built with React. 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Summary
+The APP features:
+ - Mock authentication.
+ - Detailed browsing through the available workouts.
+ - A personalized dashboard for tracking your progress.
+ - Profile management.
+ - A responsive UI with dark/light themes according to the user preference.
 
-Currently, two official plugins are available:
+ ## APIs used
+ - [ExerciseDB API](https://exercisedb-api.vercel.app/api/v1/exercises)
+ - [JSONPlaceholder API](https://jsonplaceholder.typicode.com/posts)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🗂️ Folder Structure
 
-## Expanding the ESLint configuration
+    fitbuddy-app/
+    ├── public/
+    │   └── favicon       
+    ├── src/
+    │   ├── components/
+    │   │   └── common/
+    │   │       ├── Navbar.jsx
+    │   │       └── Footer.jsx
+    │   ├── pages/
+    │   │   ├── LandingPage.jsx
+    │   │   ├── LoginPage.jsx
+    │   │   ├── RegisterPage.jsx
+    │   │   ├── ForgotPasswordPage.jsx
+    │   │   ├── ResetPasswordPage.jsx
+    │   │   ├── DashboardPage.jsx
+    │   │   ├── WorkoutsPage.jsx
+    │   │   ├── WorkoutDetailPage.jsx
+    │   │   ├── ProfilePage.jsx
+    │   │   ├── SettingsPage.jsx
+    │   │   └── NotFoundPage.jsx
+    │   ├── App.jsx
+    │   ├── main.jsx
+    │   └── index.css
+    ├── .gitignore
+    ├── index.html
+    ├── package.json
+    └── vite.config.js
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+- React + Vite – Frontend Framework
+- Tailwind CSS – Styling (Material You inspired)
+- Anime.js – UI animations
+- Lucide Icons – Modern, scalable icon system
+- ExerciseDB API – External workout data
+- JSONPlaceholder API - User account profile creation.
+- LocalStorage – Mock data persistence (auth, profile, settings)
 
+## Setup
 
-This is a new project.
+To interact with the fitmate APP, navigate to this link[fitmate](https://fit-mate.netlify.app/
+)
+
+To run this repository locally, follow these steps : 
+ 
+- Clone the repository
+
+```shell
+git git@github.com:Moringa-SDF-PT10/group-12-fitness-tracker-app-project.git
+```
+
+- Open the cloned repository in `Visual Studio Code`
+
+- Install dependencies
+
+```shell
+npm install
+```
+
+- Run the development server
+
+```shell
+npm run dev
+```
+
+- To view in your browser, visit `http://localhost:5173`
+
