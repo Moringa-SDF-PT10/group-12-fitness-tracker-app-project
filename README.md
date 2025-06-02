@@ -4,7 +4,7 @@
 ![Anime.js](https://img.shields.io/badge/animation-Anime.js-ff69b4)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-FitMate is an interactive and dynamic React fitness tracking application designed to help you manage your workouts, monitor progress, and achieve your fitness goals. It features a clean, responsive UI with engaging animations and a personalized experience.
+Fit-Mate is an interactive and dynamic React fitness tracking application designed to help you manage your workouts, monitor progress, and achieve your fitness goals. It features a clean, responsive UI with engaging animations and a personalized experience.
 
 ---
 
@@ -153,6 +153,16 @@ Open a PR from your forked repo to the main branch.
 
 ---
 
+## 🤝 Contributors
+
+This project was a collaborative effort by the following amazing developers:
+
+* 👤 **[Antony Milimo](https://github.com/ANTONMILIMO)** - antonmilimo
+* 👤 **[George Kahuki](https://github.com/GKahuki)** - GKahuki
+* 👤 **[Ike Mwithiga](https://github.com/Thigzz)** - Thigzz
+
+A big thank you to everyone for their hard work and dedication!
+
 ## 📄 License
 
 Licensed under the **MIT License**.
@@ -161,4 +171,4 @@ Licensed under the **MIT License**.
 
 ## 💪 Happy Tracking & Stay Fit!
 
-Built with ❤️, React, and a sprinkle of animation magic ✨
+Built with React, and a sprinkle of animation magic ✨
