@@ -1,87 +1,164 @@
-# FitMate
-This group project is an interactive fitness tracking APP built with React + Vite. 
+# FitMate: Your Personal Fitness Tracking Companion 🏋️‍♀️📊
+![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/built%20with-React-61DAFB?logo=react)
+![Anime.js](https://img.shields.io/badge/animation-Anime.js-ff69b4)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-## Summary
-The APP features:
- - Mock authentication - Login, Register, Forgot/Reset Password, Session Persistence.
- - Detailed browsing through the available workouts.
- - A personalized dashboard for tracking your progress.
- - Profile and user settings management - Save user profile,delete user profile, change preferences, mock account management.
- - A responsive UI with dark/light themes according to the user preference.
+FitMate is an interactive and dynamic React fitness tracking application designed to help you manage your workouts, monitor progress, and achieve your fitness goals. It features a clean, responsive UI with engaging animations and a personalized experience.
 
- - Workout data is fetched from the ExerciseDB API and populated on the WorkoutsPage.User activity is tracked through the dashboard.
- - User profile creation utilizes the JSONPlaceholder API. Data persistence between the settings and profile components is maintained by storing the data in the same key in local storage.
+---
 
+## ✨ Features
 
- ## APIs used
- - [ExerciseDB API](https://exercisedb-api.vercel.app/api/v1/exercises)
- - [JSONPlaceholder API](https://jsonplaceholder.typicode.com/posts)
+* **🔐 Mock Authentication**: User-friendly Login, Register, Forgot/Reset Password flows with session persistence using `localStorage`.
+* **🏋️ Extensive Workout Library**: Browse a comprehensive list of exercises with detailed information, fetched from the ExerciseDB API. Filter workouts by name, body part, or equipment.
+* **📊 Personalized & Editable Dashboard**:
+    * Track and edit your **Weekly Activity Goals** (total minutes, number of sessions by type, body part focus).
+    * Monitor and update **Daily Habits** like water intake and sleep hours against your set goals.
+    * Visualize **Daily Activity Progress** with interactive rings for each day of the week, showing minutes and completed sessions.
+    * View completed and upcoming logged workouts.
+* **👤 Profile & Settings Management**:
+    * Create and manage your user profile (initial data mocked via JSONPlaceholder API).
+    * Customize application preferences, including light/dark themes.
+    * All user-specific data (profile, settings, dashboard goals & progress) is persisted locally.
+* **🎨 Responsive & Modern UI**:
+    * Clean, Material You-inspired design built with Tailwind CSS.
+    * Smooth UI animations powered by Anime.js.
+    * Crisp and scalable icons from Lucide Icons.
+    * Fully responsive for optimal viewing on mobile, tablet, and desktop.
+* **🔄 Data Persistence**: Uses `localStorage` for mock auth, user profiles, custom settings, and all dashboard data, ensuring your information is saved between sessions.
+* **🔧 API Integration**: Fetches workout data from ExerciseDB and uses JSONPlaceholder for mock profile creation. Supports API interactions for saving edited exercise details (demonstrative `PATCH` request).
 
-## 🗂️ Folder Structure
+---
 
-    fitbuddy-app/
-    ├── public/
-    │   └── favicon       
-    ├── src/
-    │   ├── components/
-    │   │   └── common/
-    │   │       ├── Navbar.jsx
-    │   │       └── Footer.jsx
-    │   ├── pages/
-    │   │   ├── LandingPage.jsx
-    │   │   ├── LoginPage.jsx
-    │   │   ├── RegisterPage.jsx
-    │   │   ├── ForgotPasswordPage.jsx
-    │   │   ├── ResetPasswordPage.jsx
-    │   │   ├── DashboardPage.jsx
-    │   │   ├── WorkoutsPage.jsx
-    │   │   ├── WorkoutDetailPage.jsx
-    │   │   ├── ProfilePage.jsx
-    │   │   ├── SettingsPage.jsx
-    │   │   └── NotFoundPage.jsx
-    │   ├── App.jsx
-    │   ├── main.jsx
-    │   └── index.css
-    ├── .gitignore
-    ├── index.html
-    ├── package.json
-    └── vite.config.js
+## 🧰 Tech Stack
 
-## 🛠️ Tech Stack
-- React + Vite – Frontend Framework
-- Tailwind CSS – Styling (Material You inspired)
-- Anime.js – UI animations
-- Lucide Icons – Modern, scalable icon system
-- ExerciseDB API – External workout data
-- JSONPlaceholder API - User account profile creation.
-- LocalStorage – Mock data persistence (auth, profile, settings)
+* ⚛️ **React + Vite**
+* 🎨 **Tailwind CSS**
+* 🌀 **Anime.js**
+* 🎯 **Lucide React** 
+* 🔗 **APIs**:
+    * [ExerciseDB API](https://exercisedb-api.vercel.app/api/v1/exercises) – For fetching workout data.
+    * [JSONPlaceholder API](https://jsonplaceholder.typicode.com/posts) – For mock user profile creation.
+* 💾 **LocalStorage** – For client-side data persistence (auth, profile, settings, dashboard).
 
-## Setup
+---
 
-To interact with the fitmate APP, navigate to this link [fitmate](https://fit-mate.netlify.app/
-)
+## 🎬 Demo Preview
 
-To run this repository locally, follow these steps : 
- 
-- Clone the repository
+🔗 **Live Demo**: [Fit-Mate](https://fit-mate.netlify.app/)
 
-```shell
+---
+
+## 📂 Project Structure
+
+```
+fitmate-app/
+├── public/
+│   └── favicon.ico
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   └── common/
+│   ├── context/
+│   │   └── AuthContext.jsx
+│   ├── pages/
+│   │   ├── LandingPage.jsx
+│   │   ├── LoginPage.jsx
+│   │   ├── RegisterPage.jsx
+│   │   ├── ForgotPasswordPage.jsx
+│   │   ├── ResetPasswordPage.jsx
+│   │   ├── DashboardPage.jsx
+│   │   ├── WorkoutsPage.jsx
+│   │   ├── WorkoutDetailPage.jsx
+│   │   ├── ProfilePage.jsx
+│   │   └── SettingsPage.jsx
+│   ├── App.css
+│   ├── index.css
+│   ├── Styles.css
+│   ├── App.jsx
+│   └── main.jsx
+├── .gitignore
+├── index.html
+├── package.json
+├── README.md
+└── vite.config.js
+```
+
+---
+
+## 🚀 Getting Started
+
+To get a local copy of FitMate up and running, follow these steps:
+
+### 1. Clone the Repository
+
+```bash
 git clone git@github.com:Moringa-SDF-PT10/group-12-fitness-tracker-app-project.git
 ```
 
-- Open the cloned repository in `Visual Studio Code`
+### 2. Navigate to the Project Folder
 
-- Install dependencies
-
-```shell
-npm install 
+```bash
+cd group-12-fitness-tracker-app-project
 ```
 
-- Run the development server
+### 3. Install Dependencies
 
-```shell
+Make sure you have **Node.js** and **npm** installed. Then run:
+
+```bash
+npm install
+```
+
+### 4. Start the Development Server
+
+```bash
 npm run dev
 ```
 
-- To view in your browser, visit `http://localhost:5173`
+Open your browser at `http://localhost:5173`.
 
+---
+
+## 🙌 Contributing
+
+### 1. Fork the Repository
+
+Click the **“Fork”** button on GitHub.
+
+### 2. Create a Branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+### 3. Make Your Changes
+
+### 4. Commit Your Changes
+
+```bash
+git commit -m "feat: Add awesome feature"
+```
+
+### 5. Push to Your Branch
+
+```bash
+git push origin feature/your-feature-name
+```
+
+### 6. Create a Pull Request
+
+Open a PR from your forked repo to the main branch.
+
+---
+
+## 📄 License
+
+Licensed under the **MIT License**.
+
+---
+
+## 💪 Happy Tracking & Stay Fit!
+
+Built with ❤️, React, and a sprinkle of animation magic ✨

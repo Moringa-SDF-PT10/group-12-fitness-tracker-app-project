@@ -14,7 +14,7 @@ const API_LIST_URL = 'https://exercisedb-api.vercel.app/api/v1/exercises';
 const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
 
-// Capitalize first letter of a string
+// Returns a matching icon for a given body part
 const getIconForBodyPart = (bodyPart) => {
     const bp = bodyPart ? bodyPart.toLowerCase() : '';
     const iconSize = "w-16 h-16";
@@ -38,7 +38,6 @@ const getIconForBodyPart = (bodyPart) => {
 
 
 // Component that renders individual exercise cards
-
 const ExerciseCard = ({ exercise, navigate }) => {
   const primaryBodyPart = (Array.isArray(exercise.bodyParts) && exercise.bodyParts.length > 0) ? exercise.bodyParts[0] : 'unknown';
   const primaryTarget = (Array.isArray(exercise.targetMuscles) && exercise.targetMuscles.length > 0) ? exercise.targetMuscles[0] : 'N/A';
@@ -100,70 +99,51 @@ const WorkoutsPage = () => {
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
 
-  const [bodyPartFilterOptions, setBodyPartFilterOptions] = useState([]);
-  const [equipmentFilterOptions, setEquipmentFilterOptions] = useState([]);
+  const [bodyPartFilterOptions, setBodyPartFilterOptions] = useState(['']); // Initialize with 'All'
+  const [equipmentFilterOptions, setEquipmentFilterOptions] = useState(['']); // Initialize with 'All'
   
   const [nextPageUrl, setNextPageUrl] = useState(null); 
   const [currentOffset, setCurrentOffset] = useState(0);
   const exercisesPerPage = 50;
 
-
-    // Fetch exercises from API
   const fetchExerciseData = useCallback(async (url, isInitialLoad = false) => {
-    if (isInitialLoad) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
+    if (isInitialLoad) setIsLoading(true);
+    else setIsLoadingMore(true);
     setError(null);
 
     try {
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      
       const result = await response.json();
-
       if (!result.success || !result.data || !Array.isArray(result.data.exercises)) {
         throw new Error("API response format is not as expected or no exercises found.");
       }
       
       const newExercises = result.data.exercises;
-      const totalFetched = result.data.total;
+      const totalFetchedApi = result.data.total;
 
       if (newExercises.length > 0) {
         setAllFetchedExercises(prevItems => isInitialLoad ? newExercises : [...prevItems, ...newExercises]);
         
-        if (isInitialLoad) {
-            const uniqueBodyParts = ['', ...new Set(newExercises.flatMap(ex => ex.bodyParts || []).map(bp => bp ? bp.toLowerCase() : '').filter(Boolean))].sort();
-            const uniqueEquipments = ['', ...new Set(newExercises.flatMap(ex => ex.equipments || []).map(eq => eq ? eq.toLowerCase() : '').filter(Boolean))].sort();
-            setBodyPartFilterOptions(uniqueBodyParts);
-            setEquipmentFilterOptions(uniqueEquipments);
-        }
-        
         let fetchedOffset = 0;
         const urlParams = new URLSearchParams(url.split('?')[1]);
-        if (urlParams.has('offset')) {
-            fetchedOffset = parseInt(urlParams.get('offset'), 10) || 0;
-        }
+        if (urlParams.has('offset')) fetchedOffset = parseInt(urlParams.get('offset'), 10) || 0;
+        
         const newOffsetForNextPage = fetchedOffset + newExercises.length;
         setCurrentOffset(newOffsetForNextPage);
 
-        if (totalFetched && newOffsetForNextPage < totalFetched) {
+        if (totalFetchedApi && newOffsetForNextPage < totalFetchedApi) {
             setNextPageUrl(`${API_LIST_URL}?offset=${newOffsetForNextPage}&limit=${exercisesPerPage}`);
-        } else if (!totalFetched && newExercises.length === exercisesPerPage) {
+        } else if (!totalFetchedApi && newExercises.length === exercisesPerPage) {
             setNextPageUrl(`${API_LIST_URL}?offset=${newOffsetForNextPage}&limit=${exercisesPerPage}`);
         } else {
             setNextPageUrl(null);
         }
-
       } else {
-        if (isInitialLoad) {
-            setAllFetchedExercises([]);
-        }
+        if (isInitialLoad) setAllFetchedExercises([]);
         setNextPageUrl(null);
       }
-      // return newExercises
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message || "Could not load exercises. Please try again.");
@@ -178,12 +158,48 @@ const WorkoutsPage = () => {
     fetchExerciseData(`${API_LIST_URL}?offset=0&limit=${exercisesPerPage}`, true);
   }, [exercisesPerPage]);
 
+  // Effect to update filter options when allFetchedExercises changes
+  useEffect(() => {
+    if (allFetchedExercises.length > 0) {
+        const uniqueBodyParts = ['', ...new Set(allFetchedExercises.flatMap(ex => ex.bodyParts || []).map(bp => bp ? bp.toLowerCase() : '').filter(Boolean))].sort();
+        const uniqueEquipments = ['', ...new Set(allFetchedExercises.flatMap(ex => ex.equipments || []).map(eq => eq ? eq.toLowerCase() : '').filter(Boolean))].sort();
+        setBodyPartFilterOptions(uniqueBodyParts);
+        setEquipmentFilterOptions(uniqueEquipments);
+    } else {
+        // If no exercises, state is reset to default 'All' option
+        setBodyPartFilterOptions(['']);
+        setEquipmentFilterOptions(['']);
+    }
+  }, [allFetchedExercises]);
+
   // Effect for filtering displayed exercises
   useEffect(() => {
-    let filtered = allFetchedExercises;
-    if (searchTerm) { /* ... filtering logic ... */ }
-    if (selectedBodyPart) { /* ... filtering logic ... */ }
-    if (selectedEquipment) { /* ... filtering logic ... */ }
+    let filtered = [...allFetchedExercises]; // Starts with all fetched exercises
+
+    // Apply search term filter
+    if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(ex =>
+        (ex.name && typeof ex.name === 'string' && ex.name.toLowerCase().includes(lowerSearchTerm)) ||
+        (Array.isArray(ex.targetMuscles) && ex.targetMuscles.some(tm => tm && typeof tm === 'string' && tm.toLowerCase().includes(lowerSearchTerm)))
+      );
+    }
+
+    // Apply body part filter
+    if (selectedBodyPart) {
+      const lowerBodyPart = selectedBodyPart.toLowerCase();
+      filtered = filtered.filter(ex =>
+        Array.isArray(ex.bodyParts) && ex.bodyParts.some(bp => bp && typeof bp === 'string' && bp.toLowerCase() === lowerBodyPart)
+      );
+    }
+
+    // Apply equipment filter
+    if (selectedEquipment) {
+      const lowerEquipment = selectedEquipment.toLowerCase();
+      filtered = filtered.filter(ex =>
+        Array.isArray(ex.equipments) && ex.equipments.some(eq => eq && typeof eq === 'string' && eq.toLowerCase() === lowerEquipment)
+      );
+    }
     setExercisesToDisplay(filtered); 
   }, [searchTerm, selectedBodyPart, selectedEquipment, allFetchedExercises]);
 
@@ -193,13 +209,12 @@ const WorkoutsPage = () => {
     }
   };
   
-
-  //function to reset workouts on the off-chance exercise don't load
   const handleResetAndReload = () => {
     setSearchTerm('');
     setSelectedBodyPart('');
     setSelectedEquipment('');
-    setCurrentOffset(0);
+    setCurrentOffset(0); 
+    setAllFetchedExercises([]); 
     fetchExerciseData(`${API_LIST_URL}?offset=0&limit=${exercisesPerPage}`, true);
   };
 
@@ -230,14 +245,14 @@ const WorkoutsPage = () => {
             <label htmlFor="bodyPart-filter" className="block text-sm font-medium text-[#6C757D] mb-1">Body Part</label>
             <select id="bodyPart-filter" value={selectedBodyPart} onChange={(e) => setSelectedBodyPart(e.target.value)}
               className="w-full py-2.5 px-3 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E]">
-              {bodyPartFilterOptions.map(part => <option key={part} value={part}>{capitalize(part) || 'All Body Parts'}</option>)}
+              {bodyPartFilterOptions.map(part => <option key={part || 'all-bp'} value={part}>{capitalize(part) || 'All Body Parts'}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor="equipment-filter" className="block text-sm font-medium text-[#6C757D] mb-1">Equipment</label>
             <select id="equipment-filter" value={selectedEquipment} onChange={(e) => setSelectedEquipment(e.target.value)}
               className="w-full py-2.5 px-3 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E]">
-              {equipmentFilterOptions.map(equip => <option key={equip} value={equip}>{capitalize(equip) || 'All Equipment'}</option>)}
+              {equipmentFilterOptions.map(equip => <option key={equip || 'all-eq'} value={equip}>{capitalize(equip) || 'All Equipment'}</option>)}
             </select>
           </div>
         </div>
