@@ -8,8 +8,6 @@ function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-
-  // Retrieve the email stored during the "Forgot Password" step
   const [resetEmail, setResetEmail] = useState('');
 
   useEffect(() => {
@@ -17,14 +15,13 @@ function ResetPasswordPage() {
     if (storedEmail) {
       setResetEmail(storedEmail);
     } else {
-      // If no email is found, it implies an invalid or expired session
       setError('Password reset session is invalid or has expired. Please try the "Forgot Password" process again.');
     }
   }, []);
 
   const handleReset = (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError('');
 
     if (!resetEmail) {
         setError('Password reset session is invalid. Please start over.');
@@ -43,36 +40,32 @@ function ResetPasswordPage() {
         return;
     }
 
-    // Simulate password reset: In a real app, this would involve an API call.
-    // For this mock, we'll just log it and assume success.
-    // If you were linking this to your AuthContext, you'd find the user by 'resetEmail'
-    // and update their password.
     console.log(`Password for ${resetEmail} would be reset to: ${password}`);
     
-    // For a more complete mock, you could update the user in localStorage if they exist
     const usersJSON = localStorage.getItem('fitbuddy-users');
     if (usersJSON) {
         let users = JSON.parse(usersJSON);
         const userIndex = users.findIndex(u => u.email === resetEmail);
         if (userIndex !== -1) {
-            users[userIndex].password = password; // In a real app, hash this password
+            users[userIndex].password = password; 
             localStorage.setItem('fitbuddy-users', JSON.stringify(users));
         }
     }
 
-    localStorage.removeItem('reset-email'); // Clear the reset token/email
+    localStorage.removeItem('reset-email'); 
 
     setSuccess(true);
     setTimeout(() => navigate('/login'), 2500);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF7F5] p-4">
-      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#F5E0D5]">
+
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F5] p-4">
+      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#D1D1D1]">
         <div className="text-center mb-8">
-            <KeyRound className="w-16 h-16 text-[#FFB6C1] mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#6D4C41]">Set New Password</h2>
-            {resetEmail && !success && <p className="text-[#A1887F] mt-1">Enter a new password for <span className="font-medium text-[#6D4C41]">{resetEmail}</span>.</p>}
+            <KeyRound className="w-16 h-16 text-[#05BFDB] mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-[#0B0B0B]">Set New Password</h2>
+            {resetEmail && !success && <p className="text-[#3E3E3E] mt-1">Enter a new password for <span className="font-medium text-[#0B0B0B]">{resetEmail}</span>.</p>}
         </div>
 
         {error && (
@@ -84,18 +77,18 @@ function ResetPasswordPage() {
         {success && (
           <div className="text-center space-y-4">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
-            <p className="text-lg font-medium text-[#6D4C41]">Password Reset Successful!</p>
-            <p className="text-sm text-[#A1887F]">You can now login with your new password. Redirecting...</p>
+            <p className="text-lg font-medium text-[#0B0B0B]">Password Reset Successful!</p>
+            <p className="text-sm text-[#3E3E3E]">You can now login with your new password. Redirecting...</p>
           </div>
         )}
 
-        {!success && resetEmail && ( // Only show form if email exists and not yet successful
+        {!success && resetEmail && ( 
           <form onSubmit={handleReset} className="space-y-6">
             <div>
-                <label htmlFor="new-password" className="block text-sm font-medium text-[#A1887F] mb-1">New Password</label>
+                <label htmlFor="new-password" className="block text-sm font-medium text-[#6C757D] mb-1">New Password</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-[#A1887F]" />
+                        <Lock className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="new-password"
@@ -104,15 +97,15 @@ function ResetPasswordPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
             <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-[#A1887F] mb-1">Confirm New Password</label>
+                <label htmlFor="confirm-password" className="block text-sm font-medium text-[#6C757D] mb-1">Confirm New Password</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-[#A1887F]" />
+                        <Lock className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="confirm-password"
@@ -121,13 +114,13 @@ function ResetPasswordPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
             <button
               type="submit"
-              className="w-full flex items-center justify-center px-8 py-3 bg-[#FFB6C1] text-white font-semibold rounded-xl shadow-md hover:bg-opacity-80 transition-all duration-300 transform hover:scale-105"
+              className="w-full flex items-center justify-center px-8 py-3 bg-[#0A4D68] text-white font-semibold rounded-xl shadow-md hover:bg-[#083D53] transition-all duration-300 transform hover:scale-105"
             >
               Reset Password
             </button>
@@ -135,7 +128,7 @@ function ResetPasswordPage() {
         )}
          {!success && (
             <p className="mt-6 text-sm text-center">
-            <Link to="/login" className="font-medium text-[#FFB6C1] hover:text-[#FFDAC1] transition-colors">
+            <Link to="/login" className="font-medium text-[#05BFDB] hover:text-[#049DB4] transition-colors">
                 Back to Login
             </Link>
             </p>

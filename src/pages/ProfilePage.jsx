@@ -1,51 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Edit3, Target, BarChart2, Save, Image as ImageIcon, AlertCircle, CheckCircle, LogOut } from 'lucide-react';
+import { User, Edit3, Target, BarChart2, Save, Image as ImageIcon, AlertCircle, CheckCircle, LogOut, Trash2 } from 'lucide-react'; // Added Trash2
 
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const isNonNegativeNumber = (value) => typeof value === 'number' && !isNaN(value) && value >= 0;
+const isNonNegativeNumber = (value) => {
+    const num = parseFloat(value);
+    return !isNaN(num) && num >= 0;
+};
+
 
 const defaultUserData = {
   profile: {
-    name: '',
-    email: '',
-    age: '',
-    gender: 'Male',
-    height: '',
-    weight: '',
-    photo: '',
-    fitnessLevel: 'Intermediate',
+    name: '', email: '', age: '', gender: 'Male', height: '', weight: '',
+    photo: '', fitnessLevel: 'Intermediate',
   },
-  goals: {
-    type: 'Weight Loss',
-    target: 'Lose 20 kg',
-    timeframe: '8 Weeks',
-  },
-  preferences: {
-    workouts: '',
-    equipment: '',
-    time: '',
-  },
+  goals: { type: 'Weight Loss', target: 'Lose 20 kg', timeframe: '8 Weeks' },
+  preferences: { workouts: '', equipment: '', time: '' },
   progress: {
-    weight: '',
-    bodyMeasurements: '',
-    totalWorkouts: '',
-    streak: '',
-    favoriteExercises: '',
-    activeDaysTimes: '',
-    caloriesBurned: '',
+    weight: '', bodyMeasurements: '', totalWorkouts: '', streak: '',
+    favoriteExercises: '', activeDaysTimes: '', caloriesBurned: '',
   },
-  notifications: {
-    notifyWorkouts: true,
-    notifyProgress: true,
-  },
-  appearance: {
-    theme: 'light',
-    fontSize: 'medium',
-  },
-  subscription: {
-    plan: 'Free',
-  },
+  notifications: { notifyWorkouts: true, notifyProgress: true },
+  appearance: { theme: 'light', fontSize: 'medium' },
+  subscription: { plan: 'Free' },
 };
 
 const ProfilePage = () => {
@@ -55,21 +32,25 @@ const ProfilePage = () => {
   const [emailError, setEmailError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [userCreated, setUserCreated] = useState(localStorage.getItem('userCreated') === 'true');
+  const [saveMessage, setSaveMessage] = useState(''); 
 
   const [userData, setUserData] = useState(() => {
     const stored = localStorage.getItem('userData');
-    const parsed = stored ? JSON.parse(stored) : {};
-    return {
-      ...defaultUserData,
-      ...parsed,
-      profile: { ...defaultUserData.profile, ...parsed.profile },
-      goals: { ...defaultUserData.goals, ...parsed.goals },
-      preferences: { ...defaultUserData.preferences, ...parsed.preferences },
-      progress: { ...defaultUserData.progress, ...parsed.progress },
-      notifications: { ...defaultUserData.notifications, ...parsed.notifications },
-      appearance: { ...defaultUserData.appearance, ...parsed.appearance },
-      subscription: { ...defaultUserData.subscription, ...parsed.subscription },
-    };
+    try {
+        const parsed = stored ? JSON.parse(stored) : {};
+        return {
+            profile: { ...defaultUserData.profile, ...parsed.profile },
+            goals: { ...defaultUserData.goals, ...parsed.goals },
+            preferences: { ...defaultUserData.preferences, ...parsed.preferences },
+            progress: { ...defaultUserData.progress, ...parsed.progress },
+            notifications: { ...defaultUserData.notifications, ...parsed.notifications },
+            appearance: { ...defaultUserData.appearance, ...parsed.appearance },
+            subscription: { ...defaultUserData.subscription, ...parsed.subscription },
+        };
+    } catch (e) {
+        console.error("Failed to parse user data from localStorage", e);
+        return defaultUserData;
+    }
   });
 
   useEffect(() => {
@@ -77,9 +58,12 @@ const ProfilePage = () => {
   }, [userData]);
 
   const calculateBMI = (weight, height) => {
-    if (!weight || !height) return '-';
-    const heightM = parseFloat(height) / 100;
-    const bmi = parseFloat(weight) / (heightM * heightM);
+    if (!weight || !height || parseFloat(height) === 0) return '-';
+    const weightNum = parseFloat(weight);
+    const heightNum = parseFloat(height);
+    if (isNaN(weightNum) || isNaN(heightNum) || heightNum <=0 ) return '-';
+    const heightM = heightNum / 100;
+    const bmi = weightNum / (heightM * heightM);
     return bmi.toFixed(1);
   };
 
@@ -100,8 +84,11 @@ const ProfilePage = () => {
 
   const handleChange = (section, field, value) => {
     const numericFields = ['age', 'height', 'weight', 'totalWorkouts', 'streak', 'caloriesBurned'];
-    const parsedValue = numericFields.includes(field) ? parseFloat(value) || '' : value;
-
+    let parsedValue = value;
+    if (numericFields.includes(field)) {
+        parsedValue = value === '' ? '' : parseFloat(value); // Allow empty string, parse if not
+    }
+  
     setUserData((prev) => ({
       ...prev,
       [section]: {
@@ -110,20 +97,44 @@ const ProfilePage = () => {
       },
     }));
     setIsDirty(true);
-
+  
     if (field === 'email') {
-      setEmailError(validateEmail(value) ? '' : 'Please enter a valid email address.');
+      setEmailError(validateEmail(value) || value === '' ? '' : 'Please enter a valid email address.');
     }
-
-    if (numericFields.includes(field)) {
+  
+    if (numericFields.includes(field) && value !== '') {
       setFieldErrors((prev) => ({
         ...prev,
         [field]: isNonNegativeNumber(parsedValue) ? '' : 'Value must be 0 or greater.',
       }));
+    } else if (numericFields.includes(field) && value === '') {
+        setFieldErrors((prev) => ({ ...prev, [field]: '' })); // Clear error if field is emptied
     }
   };
 
   const handleSave = async () => {
+    setSaveMessage('');
+    // Validate all fields before saving
+    let currentFieldErrors = {};
+    if (!validateEmail(userData.profile.email) && userData.profile.email !== '') {
+        currentFieldErrors.email = 'Please enter a valid email address.';
+    }
+    const numericFields = ['age', 'height', 'weight', 'totalWorkouts', 'streak', 'caloriesBurned'];
+    numericFields.forEach(field => {
+        const section = field === 'age' || field === 'height' || field === 'weight' ? 'profile' : 'progress';
+        const value = userData[section][field];
+        if (value !== '' && !isNonNegativeNumber(value)) {
+            currentFieldErrors[field] = 'Value must be 0 or greater.';
+        }
+    });
+
+    setFieldErrors(currentFieldErrors);
+    if (Object.values(currentFieldErrors).some(Boolean) || (emailError && userData.profile.email !== '')) {
+        setSaveMessage('Please correct the errors before saving.');
+        setTimeout(() => setSaveMessage(''), 3000);
+        return;
+    }
+
     try {
       if (!userCreated) {
         const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
@@ -131,162 +142,225 @@ const ProfilePage = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData),
         });
-
         if (response.ok) {
           const data = await response.json();
           localStorage.setItem('userCreated', 'true');
-          localStorage.setItem('userId', data.id);
+          localStorage.setItem('userId', data.id); 
           setUserCreated(true);
-        } else throw new Error('Failed to create user');
+        } else throw new Error('Failed to create user profile on server');
       } else {
         const userId = localStorage.getItem('userId');
         if (userId) {
           const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${userId}`, {
-            method: 'PATCH',
+            method: 'PATCH', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData),
           });
-
-          if (!response.ok) throw new Error('Failed to update user');
+          if (!response.ok) throw new Error('Failed to update user profile on server');
         }
       }
-
       localStorage.setItem('userData', JSON.stringify(userData));
       setIsDirty(false);
-      alert('Profile saved successfully.');
+      setSaveMessage('Profile saved successfully!');
     } catch (error) {
       console.error('Save error:', error);
-      alert('An error occurred while saving your profile.');
+      setSaveMessage(`Error: ${error.message || 'Could not save profile.'}`);
     }
+    setTimeout(() => setSaveMessage(''), 3000);
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete your profile? This action can not be undone.')) return;
-
+    if (!window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) return;
+    setSaveMessage('');
     try {
       const userId = localStorage.getItem('userId');
-      if (userId) {
+      if (userId && userCreated) { // Only attempt delete if user was "created" on mock server
         const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${userId}`, {
           method: 'DELETE',
         });
-        if (!response.ok) throw new Error('Failed to delete user');
       }
-
-      localStorage.clear();
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userCreated');
+      localStorage.removeItem('userId');
       setUserCreated(false);
-      setUserData(defaultUserData);
+      setUserData(defaultUserData); 
       setIsDirty(false);
-      alert('Profile deleted successfully.');
+      setSaveMessage('Profile deleted successfully.');
     } catch (error) {
       console.error('Delete error:', error);
-      alert('An error occurred while deleting your profile.');
+      setSaveMessage(`Error: ${error.message || 'Could not delete profile.'}`);
     }
+    setTimeout(() => setSaveMessage(''), 3000);
   };
 
   const renderInput = (label, section, field, type = 'text') => (
     <div className="mb-4">
-      <label className="block font-medium text-brown-700">{label}:</label>
+      <label className="block text-sm font-medium text-[#6C757D] mb-1">{label}:</label>
       <input
         type={type}
-        value={userData[section][field]}
+        value={userData[section]?.[field] ?? ''}
         onChange={(e) => handleChange(section, field, e.target.value)}
-        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 ${
-          (field === 'email' && emailError) || fieldErrors[field] ? 'border-red-500' : 'border-gray-300'
+        className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 bg-white text-[#3E3E3E] placeholder-[#6C757D] transition-colors ${
+          (field === 'email' && emailError && userData.profile.email !== '') || (fieldErrors[field] && userData[section]?.[field] !== '') ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-[#B0B0B0] focus:ring-[#05BFDB] focus:border-[#05BFDB]'
         }`}
+        placeholder={`Enter ${label.toLowerCase()}`}
       />
-      {(field === 'email' && emailError) && <p className="text-red-500 text-sm">{emailError}</p>}
-      {fieldErrors[field] && <p className="text-red-500 text-sm">{fieldErrors[field]}</p>}
+      {(field === 'email' && emailError && userData.profile.email !== '') && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
+      {(fieldErrors[field] && userData[section]?.[field] !== '') && <p className="text-red-500 text-xs mt-1">{fieldErrors[field]}</p>}
     </div>
   );
 
+  const renderSelect = (label, section, field, options) => (
+    <div className="mb-4">
+        <label className="block text-sm font-medium text-[#6C757D] mb-1">{label}:</label>
+        <select
+            value={userData[section]?.[field] ?? ''}
+            onChange={(e) => handleChange(section, field, e.target.value)}
+            className="w-full px-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-white text-[#3E3E3E] transition-colors"
+        >
+            {options.map(opt => <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>)}
+        </select>
+    </div>
+  );
+
+
   const renderBasicProfile = () => (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4 text-pink-700">Basic Profile Details</h2>
-      <div className="mb-4">
+    <div className="p-1">
+      <h2 className="text-xl font-semibold mb-6 text-[#0A4D68] flex items-center"><User className="w-6 h-6 mr-2 text-[#05BFDB]" />Basic Profile</h2>
+      <div className="mb-6 text-center">
         <img
-          src={userData.profile.photo || '/default-profile.png'}
+          src={userData.profile.photo || `https://placehold.co/120x120/E0E0E0/0B0B0B?text=${(userData.profile.name?.[0] || 'U').toUpperCase()}`}
           alt="Profile"
-          className="w-24 h-24 object-cover rounded-full border border-brown-300"
+          className="w-28 h-28 object-cover rounded-full border-2 border-[#05BFDB] mx-auto mb-3"
         />
+        <label htmlFor="photo-upload" className="cursor-pointer text-sm text-[#05BFDB] hover:text-[#049DB4] inline-flex items-center">
+            <ImageIcon size={16} className="mr-1" /> Change Photo
+        </label>
         <input
+          id="photo-upload"
           type="file"
           accept="image/*"
           onChange={handlePhotoUpload}
-          className="mt-2 text-sm text-gray-600"
+          className="hidden"
         />
       </div>
-      {renderInput('Name', 'profile', 'name')}
-      {renderInput('Email', 'profile', 'email')}
-      {renderInput('Age', 'profile', 'age', 'number')}
-      {renderInput('Gender', 'profile', 'gender')}
-      {renderInput('Height (cm)', 'profile', 'height', 'number')}
-      {renderInput('Weight (kg)', 'profile', 'weight', 'number')}
-      {renderInput('Fitness Level', 'profile', 'fitnessLevel')}
-      <p className="text-sm font-medium mt-2">BMI: <span className="text-gray-700">{calculateBMI(userData.profile.weight, userData.profile.height)}</span></p>
+      {renderInput('Full Name', 'profile', 'name')}
+      {renderInput('Email Address', 'profile', 'email', 'email')}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {renderInput('Age', 'profile', 'age', 'number')}
+        {renderSelect('Gender', 'profile', 'gender', ['Male', 'Female', 'Other', 'Prefer not to say'])}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {renderInput('Height (cm)', 'profile', 'height', 'number')}
+        {renderInput('Weight (kg)', 'profile', 'weight', 'number')}
+      </div>
+      <p className="text-sm font-medium mt-3 text-[#3E3E3E]">Calculated BMI: <span className="font-bold text-[#0A4D68]">{calculateBMI(userData.profile.weight, userData.profile.height)}</span></p>
+      {renderSelect('Fitness Level', 'profile', 'fitnessLevel', ['Beginner', 'Intermediate', 'Advanced', 'Expert'])}
     </div>
   );
 
   const renderGoalsPreferences = () => (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4 text-pink-700">Goals & Preferences</h2>
-      {renderInput('Current Goal', 'goals', 'type')}
-      {renderInput('Target', 'goals', 'target')}
-      {renderInput('Timeframe', 'goals', 'timeframe')}
-      {renderInput('Preferred Workouts', 'preferences', 'workouts')}
-      {renderInput('Available Equipment', 'preferences', 'equipment')}
-      {renderInput('Time Constraints', 'preferences', 'time')}
+    <div className="p-1">
+      <h2 className="text-xl font-semibold mb-6 text-[#0A4D68] flex items-center"><Target className="w-6 h-6 mr-2 text-[#05BFDB]" />Goals & Preferences</h2>
+      {renderSelect('Primary Goal', 'goals', 'type', ['Weight Loss', 'Muscle Gain', 'Improve Endurance', 'Maintain Fitness', 'Learn New Skills'])}
+      {renderInput('Specific Target (e.g., Lose 5kg, Run 5k)', 'goals', 'target')}
+      {renderInput('Desired Timeframe (e.g., 3 Months, By December)', 'goals', 'timeframe')}
+      
+      <h3 className="text-lg font-medium text-[#0A4D68] mt-6 mb-3">Workout Preferences</h3>
+      {renderInput('Preferred Workout Types (e.g., Cardio, Strength, Yoga)', 'preferences', 'workouts')}
+      {renderInput('Available Equipment (e.g., Dumbbells, Resistance Bands, None)', 'preferences', 'equipment')}
+      {renderInput('Preferred Workout Times / Constraints', 'preferences', 'time')}
     </div>
   );
 
   const renderProgressAnalytics = () => (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4 text-pink-700">Progress Tracking</h2>
-      <h3 className="text-lg font-medium text-brown-600">Body Metrics Dashboard</h3>
-      {renderInput('Recent Weight', 'progress', 'weight', 'number')}
-      {renderInput('Body Measurements', 'progress', 'bodyMeasurements')}
-      <h3 className="text-lg font-medium text-brown-600 mt-4">Workout Statistics</h3>
-      {renderInput('Total Workouts Completed', 'progress', 'totalWorkouts', 'number')}
-      {renderInput('Current Streak', 'progress', 'streak', 'number')}
-      {renderInput('Favorite Exercises', 'progress', 'favoriteExercises')}
+    <div className="p-1">
+      <h2 className="text-xl font-semibold mb-6 text-[#0A4D68] flex items-center"><BarChart2 className="w-6 h-6 mr-2 text-[#05BFDB]" />Progress Tracking</h2>
+      <h3 className="text-lg font-medium text-[#0A4D68] mb-3">Body Metrics</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {renderInput('Recent Weight (kg)', 'progress', 'weight', 'number')}
+        {renderInput('Body Measurements (e.g., Waist: 32in)', 'progress', 'bodyMeasurements')}
+      </div>
+      <h3 className="text-lg font-medium text-[#0A4D68] mt-6 mb-3">Workout Statistics</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {renderInput('Total Workouts Completed', 'progress', 'totalWorkouts', 'number')}
+        {renderInput('Current Workout Streak (days)', 'progress', 'streak', 'number')}
+      </div>
+      {renderInput('Favorite Exercises (comma-separated)', 'progress', 'favoriteExercises')}
       {renderInput('Most Active Days/Times', 'progress', 'activeDaysTimes')}
-      {renderInput('Calories Burned (est.)', 'progress', 'caloriesBurned', 'number')}
+      {renderInput('Estimated Calories Burned (total)', 'progress', 'caloriesBurned', 'number')}
     </div>
   );
 
+  const tabConfig = [
+    { id: 'basic', label: 'Basic Info', icon: <User size={18}/>, content: renderBasicProfile },
+    { id: 'goals', label: 'Goals', icon: <Target size={18}/>, content: renderGoalsPreferences },
+    { id: 'progress', label: 'Progress', icon: <BarChart2 size={18}/>, content: renderProgressAnalytics },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8 text-brown-800">
-      <h1 className="text-2xl font-bold mb-2">User Profile {isDirty && <span className="text-red-500 text-base ml-2">(Unsaved Changes)</span>}</h1>
+    <div className="min-h-screen bg-[#F5F5F5] py-8 px-4">
+      <div className="max-w-3xl mx-auto bg-[#FFFFFF] p-6 md:p-8 rounded-2xl shadow-xl border border-[#D1D1D1]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <h1 className="text-3xl font-bold text-[#0B0B0B] mb-2 sm:mb-0">
+                User Profile
+            </h1>
+            {isDirty && <span className="text-sm text-yellow-600 bg-yellow-100 px-2 py-1 rounded-md flex items-center"><AlertCircle size={16} className="mr-1"/> Unsaved Changes</span>}
+        </div>
 
-      <div className="flex space-x-2 mb-6">
-        <button onClick={() => setActiveTab('basic')} className={`px-4 py-2 rounded-md ${activeTab === 'basic' ? 'bg-pink-500 text-white' : 'bg-pink-100 text-pink-700'}`}>Basic</button>
-        <button onClick={() => setActiveTab('goals')} className={`px-4 py-2 rounded-md ${activeTab === 'goals' ? 'bg-pink-500 text-white' : 'bg-pink-100 text-pink-700'}`}>Goals & Preferences</button>
-        <button onClick={() => setActiveTab('progress')} className={`px-4 py-2 rounded-md ${activeTab === 'progress' ? 'bg-pink-500 text-white' : 'bg-pink-100 text-pink-700'}`}>Progress</button>
-      </div>
+        {saveMessage && (
+            <div className={`mb-4 p-3 rounded-lg text-sm flex items-center ${saveMessage.toLowerCase().includes('error') || saveMessage.toLowerCase().includes('correct') ? 'bg-red-100 border-red-400 text-red-700' : 'bg-green-100 border-green-400 text-green-700'}`}>
+                {saveMessage.toLowerCase().includes('error') || saveMessage.toLowerCase().includes('correct') ? <AlertCircle size={18} className="mr-2"/> : <CheckCircle size={18} className="mr-2"/>}
+                {saveMessage}
+            </div>
+        )}
 
-      {activeTab === 'basic' && renderBasicProfile()}
-      {activeTab === 'goals' && renderGoalsPreferences()}
-      {activeTab === 'progress' && renderProgressAnalytics()}
+        <div className="mb-6 border-b border-[#D1D1D1]">
+            <nav className="-mb-px flex space-x-1 sm:space-x-4" aria-label="Tabs">
+            {tabConfig.map((tab) => (
+                <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm flex items-center transition-colors
+                                ${activeTab === tab.id 
+                                    ? 'border-[#05BFDB] text-[#05BFDB]' 
+                                    : 'border-transparent text-[#6C757D] hover:text-[#3E3E3E] hover:border-gray-300'
+                                }`}
+                >
+                {React.cloneElement(tab.icon, { className: "mr-2" })}
+                {tab.label}
+                </button>
+            ))}
+            </nav>
+        </div>
 
-      <div className="flex flex-wrap gap-4 mt-8">
-        <button
-          className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-4 py-2 rounded-md disabled:opacity-50"
-          onClick={handleSave}
-          disabled={emailError !== '' || Object.values(fieldErrors).some(Boolean)}
-        >
-          Save
-        </button>
-        <button
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
-          onClick={() => navigate('/settings')}
-        >
-          Back to Settings
-        </button>
-        <button
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-          onClick={handleDelete}
-        >
-          Delete Profile
-        </button>
+        <div>
+            {tabConfig.find(tab => tab.id === activeTab)?.content()}
+        </div>
+
+        <div className="mt-10 pt-6 border-t border-[#D1D1D1] flex flex-col sm:flex-row justify-between items-center gap-4">
+            <button
+            className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-[#0A4D68] hover:bg-[#083D53] text-white font-semibold rounded-xl shadow-md transition-colors disabled:opacity-60"
+            onClick={handleSave}
+            disabled={!isDirty && !Object.values(fieldErrors).some(Boolean) && !emailError}
+            >
+            <Save size={18} className="mr-2" /> Save Profile
+            </button>
+            <div className="flex space-x-3">
+                <button
+                    className="w-full sm:w-auto flex items-center justify-center px-4 py-2 text-sm text-[#3E3E3E] bg-gray-200 hover:bg-gray-300 rounded-xl transition-colors"
+                    onClick={() => navigate('/settings')} 
+                >
+                    Settings
+                </button>
+                <button
+                    className="w-full sm:w-auto flex items-center justify-center px-4 py-2 text-sm text-white bg-[#DC3545] hover:bg-red-700 rounded-xl transition-colors"
+                    onClick={handleDelete}
+                >
+                   <Trash2 size={16} className="mr-2" /> Delete Profile
+                </button>
+            </div>
+        </div>
       </div>
     </div>
   );
