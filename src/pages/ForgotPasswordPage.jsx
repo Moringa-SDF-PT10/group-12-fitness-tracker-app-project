@@ -5,14 +5,13 @@ import { Mail, Send, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(''); // Added error state
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(''); 
     
-    // Basic email validation
     if (!email) {
         setError('Please enter your email address.');
         return;
@@ -23,19 +22,18 @@ function ForgotPasswordPage() {
         return;
     }
 
-    // Simulate sending reset link
     console.log(`Password reset link would be sent to: ${email}`);
-    localStorage.setItem('reset-email', email); // Store for mock reset process
+    localStorage.setItem('reset-email', email); 
     setSubmitted(true);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF7F5] p-4">
-      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#F5E0D5]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F5] p-4">
+      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#D1D1D1]">
         <div className="text-center mb-8">
-            <Mail className="w-16 h-16 text-[#FFB6C1] mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#6D4C41]">Forgot Password?</h2>
-            <p className="text-[#A1887F] mt-1">No worries! Enter your email and we'll help you reset it.</p>
+            <Mail className="w-16 h-16 text-[#05BFDB] mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-[#0B0B0B]">Forgot Password?</h2>
+            <p className="text-[#3E3E3E] mt-1">No worries! Enter your email and we'll help you reset it.</p>
         </div>
         
         {error && !submitted && (
@@ -48,10 +46,10 @@ function ForgotPasswordPage() {
         {!submitted ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label htmlFor="email-forgot" className="block text-sm font-medium text-[#A1887F] mb-1">Email Address</label>
+                <label htmlFor="email-forgot" className="block text-sm font-medium text-[#6C757D] mb-1">Email Address</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-[#A1887F]" />
+                        <Mail className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="email-forgot"
@@ -60,13 +58,13 @@ function ForgotPasswordPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
             <button
               type="submit"
-              className="w-full flex items-center justify-center px-8 py-3 bg-[#FFB6C1] text-white font-semibold rounded-xl shadow-md hover:bg-opacity-80 transition-all duration-300 transform hover:scale-105"
+              className="w-full flex items-center justify-center px-8 py-3 bg-[#0A4D68] text-white font-semibold rounded-xl shadow-md hover:bg-[#083D53] transition-all duration-300 transform hover:scale-105"
             >
               <Send className="w-5 h-5 mr-2" /> Send Reset Link
             </button>
@@ -74,20 +72,20 @@ function ForgotPasswordPage() {
         ) : (
           <div className="text-center space-y-4">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
-            <p className="text-lg font-medium text-[#6D4C41]">Reset Link Sent (Mock)</p>
-            <p className="text-sm text-[#A1887F]">
-              If an account exists for <span className="font-semibold text-[#6D4C41]">{email}</span>, you will receive an email with instructions to reset your password.
+            <p className="text-lg font-medium text-[#0B0B0B]">Reset Link Sent (Mock)</p>
+            <p className="text-sm text-[#3E3E3E]">
+              If an account exists for <span className="font-semibold text-[#0B0B0B]">{email}</span>, you will receive an email with instructions to reset your password.
             </p>
             <button
-              onClick={() => navigate('/reset-password')} // Navigate to reset page (for mock flow)
-              className="w-full flex items-center justify-center px-8 py-3 bg-[#FFDAC1] text-[#6D4C41] font-semibold rounded-xl shadow-md hover:bg-opacity-80 transition-all duration-300"
+              onClick={() => navigate('/reset-password')}
+              className="w-full flex items-center justify-center px-8 py-3 bg-[#17A2B8] text-white font-semibold rounded-xl shadow-md hover:bg-[#138496] transition-all duration-300"
             >
               Proceed to Reset (Mock) <ArrowRight className="w-4 h-4 ml-2" />
             </button>
           </div>
         )}
         <p className="mt-6 text-sm text-center">
-          <Link to="/login" className="font-medium text-[#FFB6C1] hover:text-[#FFDAC1] transition-colors">
+          <Link to="/login" className="font-medium text-[#05BFDB] hover:text-[#049DB4] transition-colors">
             Back to Login
           </Link>
         </p>

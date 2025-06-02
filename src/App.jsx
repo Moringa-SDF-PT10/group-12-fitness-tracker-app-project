@@ -17,29 +17,24 @@ import WorkoutDetailPage from './pages/WorkoutDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 
-// Styled NavBar component that only shows when authenticated
 const NavBar = () => {
     const { user } = useContext(AuthContext);
-
-    // CSS classes for navigation links for a cleaner look
     const navLinkBaseClass = "inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out";
-    const navLinkInactiveClass = "text-[#6D4C41] hover:bg-[#FFDAC1]/40 hover:text-[#FFB6C1]";
-    const navLinkActiveClass = "bg-[#FFB6C1] text-white shadow-md";
+    const navLinkInactiveClass = "text-[#E0E0E0] hover:bg-[#05BFDB]/20 hover:text-[#FFFFFF]";
+    const navLinkActiveClass = "bg-[#05BFDB] text-[#0B0B0B] shadow-md";
 
-    // Don't render NavBar if the user is not logged in
     if (!user) return null;
 
     return (
-        <nav className="bg-[#FFFFFF] shadow-lg border-b border-[#F5E0D5]">
+        <nav className="bg-[#0A4D68] shadow-lg border-b border-[#083D53]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <span className="font-bold text-xl text-[#FFB6C1]">Fit-Mate</span>
+                            <span className="font-bold text-xl text-[#FFFFFF]">Fit-Mate</span>
                         </div>
                     </div>
                     
-                    {/* Desktop Navigation Links */}
                     <div className="hidden md:flex md:items-center md:space-x-3">
                         <NavLink
                             to="/workouts"
@@ -67,9 +62,8 @@ const NavBar = () => {
                         </NavLink>
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center">
-                        <button className="p-2 rounded-md text-[#6D4C41] hover:text-[#FFB6C1] hover:bg-[#FFDAC1]/30 focus:outline-none">
+                        <button className="p-2 rounded-md text-[#FFFFFF] hover:text-[#05BFDB] hover:bg-[#FFFFFF]/20 focus:outline-none">
                             <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
@@ -85,25 +79,22 @@ const App = () => {
     return (
         <AuthProvider>
             <Router>
-                <div className="flex flex-col min-h-screen bg-[#FFF7F5]">
+                <div className="flex flex-col min-h-screen bg-[#F5F5F5]">
                     <NavBar />
                     <main className="flex-grow p-4">
                         <Routes>
-                            {/* Public routes */}
                             <Route path="/" element={<LandingPage />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/register" element={<RegisterPage />} />
                             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                            {/* Protected routes */}
                             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
                             <Route path="/workouts" element={<ProtectedRoute><WorkoutsPage /></ProtectedRoute>} />
                             <Route path="/workouts/:workoutId" element={<ProtectedRoute><WorkoutDetailPage /></ProtectedRoute>} />
                             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                             
-                            {/* Redirect unknown routes to the landing page */}
                             <Route path="*" element={<Navigate replace to="/" />} />
                         </Routes>
                     </main>

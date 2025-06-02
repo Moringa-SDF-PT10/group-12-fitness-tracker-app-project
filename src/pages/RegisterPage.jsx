@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } // Changed useAuth to useContext
-    from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext'; // Ensure this path is correct
-import { UserPlus, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle } from 'lucide-react'; // Added icons
+import { AuthContext } from '../context/AuthContext';
+import { UserPlus, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle } from 'lucide-react';
 
 const RegisterPage = () => {
-  const { register } = useContext(AuthContext); // Use AuthContext
+  const { register } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -16,8 +15,7 @@ const RegisterPage = () => {
 
 
   useEffect(() => {
-    // Optional: Clear fields if needed, but generally not on re-render unless specific logic requires it.
-    // setName(""); setEmail(""); setPassword(""); setError("");
+    // Optional: Clear fields if needed
   }, []);
 
   const handleSubmit = (e) => {
@@ -46,12 +44,12 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF7F5] p-4">
-      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#F5E0D5]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F5] p-4">
+      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#D1D1D1]">
         <div className="text-center mb-8">
-            <UserPlus className="w-16 h-16 text-[#FFB6C1] mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#6D4C41]">Create Your Account</h2>
-            <p className="text-[#A1887F] mt-1">Join FitApp and start your fitness journey today!</p>
+            <UserPlus className="w-16 h-16 text-[#05BFDB] mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-[#0B0B0B]">Create Your Account</h2>
+            <p className="text-[#3E3E3E] mt-1">Join Fit-Mate and start your fitness journey today!</p>
         </div>
 
         {error && (
@@ -67,13 +65,13 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {!successMessage && ( // Hide form on success
+        {!successMessage && (
             <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label htmlFor="name" className="block text-sm font-medium text-[#A1887F] mb-1">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-[#6C757D] mb-1">Full Name</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <UserIcon className="h-5 w-5 text-[#A1887F]" />
+                        <UserIcon className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="name"
@@ -83,16 +81,16 @@ const RegisterPage = () => {
                         onChange={e => setName(e.target.value)}
                         autoComplete="name"
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
 
             <div>
-                <label htmlFor="email-register" className="block text-sm font-medium text-[#A1887F] mb-1">Email Address</label>
+                <label htmlFor="email-register" className="block text-sm font-medium text-[#6C757D] mb-1">Email Address</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-[#A1887F]" />
+                        <Mail className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="email-register"
@@ -100,18 +98,18 @@ const RegisterPage = () => {
                         placeholder="you@example.com"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        autoComplete="email" // Changed from username to email for better semantics
+                        autoComplete="email"
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
 
             <div>
-                <label htmlFor="password-register" className="block text-sm font-medium text-[#A1887F] mb-1">Password</label>
+                <label htmlFor="password-register" className="block text-sm font-medium text-[#6C757D] mb-1">Password</label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-[#A1887F]" />
+                        <Lock className="h-5 w-5 text-[#6C757D]" />
                     </div>
                     <input
                         id="password-register"
@@ -121,23 +119,23 @@ const RegisterPage = () => {
                         onChange={e => setPassword(e.target.value)}
                         autoComplete="new-password"
                         required
-                        className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                        className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                     />
                 </div>
             </div>
 
             <button
                 type="submit"
-                className="w-full flex items-center justify-center px-8 py-3 bg-[#FFB6C1] text-white font-semibold rounded-xl shadow-md hover:bg-opacity-80 transition-all duration-300 transform hover:scale-105"
+                className="w-full flex items-center justify-center px-8 py-3 bg-[#0A4D68] text-white font-semibold rounded-xl shadow-md hover:bg-[#083D53] transition-all duration-300 transform hover:scale-105"
             >
                 <UserPlus className="w-5 h-5 mr-2" /> Register
             </button>
 
-            <p className="mt-6 text-sm text-center text-[#A1887F]">
+            <p className="mt-6 text-sm text-center text-[#3E3E3E]">
                 Already have an account?{" "}
                 <Link
                 to="/login"
-                className="font-medium text-[#FFB6C1] hover:text-[#FFDAC1] transition-colors"
+                className="font-medium text-[#05BFDB] hover:text-[#049DB4] transition-colors"
                 >
                 Login here
                 </Link>

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext'; // Ensure this path is correct
+import { AuthContext } from '../context/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 
 const LoginPage = () => {
@@ -12,7 +12,7 @@ const LoginPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(''); 
 
     const result = login(email, password);
     if (result === true) {
@@ -23,12 +23,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF7F5] p-4">
-      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#F5E0D5]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F5] p-4">
+      <div className="w-full max-w-md bg-[#FFFFFF] p-8 rounded-2xl shadow-xl border border-[#D1D1D1]">
         <div className="text-center mb-8">
-            <LogIn className="w-16 h-16 text-[#FFB6C1] mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#6D4C41]">Welcome Back!</h2>
-            <p className="text-[#A1887F] mt-1">Please login to continue your fitness journey.</p>
+            <LogIn className="w-16 h-16 text-[#05BFDB] mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-[#0B0B0B]">Welcome Back!</h2>
+            <p className="text-[#3E3E3E] mt-1">Please login to continue your fitness journey.</p>
         </div>
 
         {error && (
@@ -40,10 +40,10 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#A1887F] mb-1">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-medium text-[#6C757D] mb-1">Email Address</label>
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-[#A1887F]" />
+                    <Mail className="h-5 w-5 text-[#6C757D]" />
                 </div>
                 <input
                     id="email"
@@ -53,16 +53,16 @@ const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="username"
                     required
-                    className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                 />
             </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[#A1887F] mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-[#6C757D] mb-1">Password</label>
             <div className="relative">
                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-[#A1887F]" />
+                    <Lock className="h-5 w-5 text-[#6C757D]" />
                 </div>
                 <input
                     id="password"
@@ -72,7 +72,7 @@ const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     required
-                    className="w-full pl-10 pr-3 py-2.5 border border-[#F5E0D5] rounded-xl focus:ring-2 focus:ring-[#FFB6C1] focus:border-[#FFB6C1] bg-[#FFFFFF] text-[#6D4C41] placeholder-[#A1887F] transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-[#B0B0B0] rounded-xl focus:ring-2 focus:ring-[#05BFDB] focus:border-[#05BFDB] bg-[#FFFFFF] text-[#3E3E3E] placeholder-[#6C757D] transition-colors"
                 />
             </div>
           </div>
@@ -80,7 +80,7 @@ const LoginPage = () => {
           <div className="text-right">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-[#FFB6C1] hover:text-[#FFDAC1] transition-colors"
+              className="text-sm font-medium text-[#05BFDB] hover:text-[#049DB4] transition-colors"
             >
               Forgot Password?
             </Link>
@@ -88,16 +88,16 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full flex items-center justify-center px-8 py-3 bg-[#FFB6C1] text-white font-semibold rounded-xl shadow-md hover:bg-opacity-80 transition-all duration-300 transform hover:scale-105"
+            className="w-full flex items-center justify-center px-8 py-3 bg-[#0A4D68] text-white font-semibold rounded-xl shadow-md hover:bg-[#083D53] transition-all duration-300 transform hover:scale-105"
           >
             <LogIn className="w-5 h-5 mr-2" /> Login
           </button>
 
-          <p className="mt-6 text-sm text-center text-[#A1887F]">
+          <p className="mt-6 text-sm text-center text-[#3E3E3E]">
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-medium text-[#FFB6C1] hover:text-[#FFDAC1] transition-colors"
+              className="font-medium text-[#05BFDB] hover:text-[#049DB4] transition-colors"
             >
               Register here
             </Link>
